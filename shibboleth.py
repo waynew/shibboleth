@@ -7,6 +7,7 @@ import readline
 import sys
 
 from datetime import datetime
+from textwrap import dedent
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +90,13 @@ class Shibboleth(cmd.Cmd):
         readline.set_completer_delims(
             readline.get_completer_delims().replace('-', '')
         )
+        self.editor = os.environ.get('EDITOR', 'vim')
+        self.intro = dedent(f'''
+        Welcome to Shibboleth, the tool designed to be *your* secret weapon.
+
+        Your editor is currently {self.editor}. If you don't like that, you
+        should change or set your EDITOR environment variable.
+        ''')
 
     def display_completion(self, substitution, matches, longest_match_length):
         logger.debug('>>display_completion')
@@ -251,17 +259,15 @@ class Shibboleth(cmd.Cmd):
 
     def do_edit(self, line):
         logger.debug('>>do_edit')
-        if not self.selected or line:
+        if not (self.selected or line):
             print('Select a file and try again')
         else:
             filename = self.selected.filename if self.selected else line
 
-        try:
-            editor = os.environ['EDITOR']
-        except KeyError:
-            print('Set environment EDITOR and try again')
-        else:
-            os.system(f'{editor} "{filename}"')
+        flags = ''
+        if self.editor in ('vi', 'vim'):
+            flags = '-n'
+        os.system(f'{self.editor} {flags} "{filename}"')
 
     def do_complete(self, line):
         logger.debug('>>do_complete')
@@ -286,12 +292,7 @@ class Shibboleth(cmd.Cmd):
         else:
             title = input('Title: ').strip().replace(' ', '-')
         filename = f'{title}[{datetime.now():%Y%m%d~%H%M%S}].md'
-        try:
-            editor = os.environ['EDITOR']
-        except KeyError:
-            print('Set environment EDITOR and try again')
-        else:
-            os.system(f'{editor} "{filename}"')
+        self.do_edit(filename)
         self.do_select(filename)
 
     def do_exit(self, line):
