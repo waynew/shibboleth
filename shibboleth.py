@@ -40,6 +40,35 @@ class Shibboleth(cmd.Cmd):
         super().__init__()
         self.prompt = 'shibboleth\n>'
 
+    def do_pls(self, line):
+        files = os.listdir(os.path.curdir)
+
+        if not line:
+            ordered = {
+                '1-now': [],
+                '2-next': [],
+                '3-soon': [],
+                '4-later': [],
+                '5-someday': [],
+                '6-waiting': [],
+            }
+            for filename in files:
+                filename = Filename(filename)
+                if '1-now' in filename.tags:
+                    ordered['1-now'].append(filename)
+                elif '2-next' in filename.tags:
+                    ordered['2-next'].append(filename)
+                elif '3-soon' in filename.tags:
+                    ordered['3-soon'].append(filename)
+                elif '4-later' in filename.tags:
+                    ordered['4-later'].append(filename)
+                elif '5-someday' in filename.tags:
+                    ordered['5-someday'].append(filename)
+                elif '6-waiting' in filename.tags:
+                    ordered['6-waiting'].append(filename)
+
+
+
     def do_ls(self, line):
         line = os.path.expanduser(line)
         if not line:
