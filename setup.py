@@ -3,11 +3,11 @@ from setuptools import setup, find_packages
 
 setup(
     name='shibboleth',
-    version='0.1.0',
+    version='0.1.6',
     author='Wayne Werner',
     author_email='waynejwerner@gmail.com',
     url='https://github.com/waynew/shibboleth',
-    packages=find_packages(),
+    py_modules=['shibboleth'],
     entry_points = {
         'console_scripts': [
             'shibboleth=shibboleth:run',
