@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='shibboleth',
-    version='0.1.6',
+    version='0.1.7',
     author='Wayne Werner',
     author_email='waynejwerner@gmail.com',
     url='https://github.com/waynew/shibboleth',

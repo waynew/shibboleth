@@ -86,6 +86,9 @@ class Shibboleth(cmd.Cmd):
         self.prompt = f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{os.getcwd()}\n>'
         self.selected = None
         readline.set_completion_display_matches_hook(self.display_completion)
+        readline.set_completer_delims(
+            readline.get_completer_delims().replace('-', '')
+        )
 
     def display_completion(self, substitution, matches, longest_match_length):
         logger.debug('>>display_completion')
@@ -328,6 +331,7 @@ class Shibboleth(cmd.Cmd):
     do_sel = do_select
     do_quit = do_exit
     do_q = do_exit
+    do_done = do_complete
     complete_sel = complete_select
     complete_e = complete_edit
 
