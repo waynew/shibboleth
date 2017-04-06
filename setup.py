@@ -1,9 +1,12 @@
 from setuptools import setup, find_packages
 
+with open('shibboleth.py') as f:
+    code = compile(f.read(), 'shibboleth.py', 'exec')
+    exec(code)
 
 setup(
     name='shibboleth',
-    version='0.1.9',
+    version=__version__,
     author='Wayne Werner',
     author_email='waynejwerner@gmail.com',
     url='https://github.com/waynew/shibboleth',

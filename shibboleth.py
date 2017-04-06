@@ -5,12 +5,14 @@ import os
 import re
 import readline
 import sys
+import pkg_resources
 
 from datetime import datetime
 from textwrap import dedent
 
 logger = logging.getLogger(__name__)
 
+__version__ = '0.1.10'
 
 DEFAULT_COLORS = {
     '1-now': 31, #red
@@ -92,7 +94,8 @@ class Shibboleth(cmd.Cmd):
         )
         self.editor = os.environ.get('EDITOR', 'vim')
         self.intro = dedent(f'''
-        Welcome to Shibboleth, the tool designed to be *your* secret weapon.
+        Welcome to Shibboleth {__version__}, the tool designed to be *your*
+        secret weapon.
 
         Your editor is currently {self.editor}. If you don't like that, you
         should change or set your EDITOR environment variable.
