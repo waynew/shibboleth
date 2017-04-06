@@ -190,3 +190,4 @@ TODOs
 .. _The Secret Weapon: http://www.thesecretweapon.org/the-secret-weapon-manifesto/manifesto-part-1-the-issue
 .. _he uses Evernote: https://medium.com/hi-my-name-is-jon/how-i-use-evernote-to-pitch-at-the-top-of-my-game-2c5966ef720b
 .. _pull requests: https://github.com/waynew/shibboleth#fork-destination-box
+.. _pull request: https://github.com/waynew/shibboleth#fork-destination-box
