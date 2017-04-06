@@ -4,6 +4,10 @@ with open('shibboleth.py') as f:
     code = compile(f.read(), 'shibboleth.py', 'exec')
     exec(code)
 
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
 setup(
     name='shibboleth',
     version=__version__,
@@ -11,6 +15,7 @@ setup(
     author_email='waynejwerner@gmail.com',
     url='https://github.com/waynew/shibboleth',
     py_modules=['shibboleth'],
+    long_description=read('README.rst'),
     entry_points = {
         'console_scripts': [
             'shibboleth=shibboleth:run',

@@ -12,7 +12,7 @@ from textwrap import dedent
 
 logger = logging.getLogger(__name__)
 
-__version__ = '0.1.10'
+__version__ = '0.1.11'
 
 DEFAULT_COLORS = {
     '1-now': 31, #red
@@ -337,6 +337,7 @@ class Shibboleth(cmd.Cmd):
     do_quit = do_exit
     do_q = do_exit
     do_done = do_complete
+    do_stop = do_deselect
     complete_sel = complete_select
     complete_e = complete_edit
 
