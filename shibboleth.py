@@ -292,6 +292,7 @@ class Shibboleth(cmd.Cmd):
         else:
             title = input('Title: ').strip().replace(' ', '-')
         filename = f'{title}[{datetime.now():%Y%m%d~%H%M%S}].md'
+        self.selected = None
         self.do_edit(filename)
         self.do_select(filename)
 
