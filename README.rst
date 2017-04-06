@@ -127,6 +127,7 @@ You can use ``ls`` to list all the files in the directory, ``cd`` to change
 directory. Or if you just want to see what you're supposed to be doing now:
 
 ::
+
     > now
     trying-out-shibboleth[20170406~013326 1-now].md
     ⇀shibboleth:/tmp/fnord/trying-out-shibboleth[20170406~013326 1-now].md
