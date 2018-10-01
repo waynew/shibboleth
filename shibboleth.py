@@ -356,7 +356,7 @@ class Shibboleth(cmd.Cmd):
         '''
         logger.debug('>>do_select')
         if not line:
-            self.do_deselect()
+            print('No task provided.')
         else:
             if not os.path.isfile(line):
                 print(f'Unknown file {line!r}')
