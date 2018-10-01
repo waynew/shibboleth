@@ -28,7 +28,7 @@ class TestShibbolethTask(unittest.TestCase):
 
                 task = shibboleth.Task(fname)
 
-                assert task.title == expected_title, f'{task.title!r} != {expected_title!r}'
+                self.assertEqual(task.title, expected_title)
 
     def test_filename_with_no_extension_or_tags_should_all_be_title(self):
         expected_title = 'This is some thing'
@@ -54,7 +54,7 @@ class TestShibbolethTask(unittest.TestCase):
             with self.subTest():
                 task = shibboleth.Task(fname)
 
-                assert task.tags == tags, f'{task.tags!r} != {tags!r}'
+                self.assertEqual(task.tags, tags or [])
 
     def test_should_parse_extension_from_filename(self):
         test_exts = [None, '', 'foo', 'bar']
@@ -103,7 +103,7 @@ class TestShibbolethTask(unittest.TestCase):
 
         self.assertTrue(expected_filename.exists())
 
-    def test_when_tag_is_added_it_should_rename_the_file(self):
+    def test_when_tag_is_appended_it_should_rename_the_file(self):
         old_filename = Path(self.tempdir.name) / f'something old[boring].txt'
         expected_filename = Path(self.tempdir.name) / f'something old[boring and new].txt'
         old_filename.touch()
@@ -111,6 +111,16 @@ class TestShibbolethTask(unittest.TestCase):
 
         task.tags.append('and')
         task.tags.append('new')
+
+        self.assertTrue(expected_filename.exists(), str(os.listdir()))
+
+    def test_when_tags_are_extended_it_should_rename_the_file(self):
+        old_filename = Path(self.tempdir.name) / f'something old[boring].txt'
+        expected_filename = Path(self.tempdir.name) / f'something old[boring and new].txt'
+        old_filename.touch()
+        task = shibboleth.Task(old_filename.name)
+
+        task.tags.extend(['and', 'new'])
 
         self.assertTrue(expected_filename.exists(), str(os.listdir()))
 
@@ -133,6 +143,81 @@ class TestShibbolethTask(unittest.TestCase):
         task.tags.remove('here')
 
         self.assertTrue(expected_filename.exists(), str(os.listdir()))
+
+
+    def test_when_no_priority_is_in_tag_it_should_be_None(self):
+        filename = f'priority testing[No priority here].test'
+        
+        task = shibboleth.Task(filename)
+
+        self.assertTrue(task.priority is None, 'priority was not None!')
+
+    def test_when_priority_is_in_tag_it_should_be_set(self):
+        for priority in shibboleth.PRIORITIES.values():
+            filename = f'priority testing[{priority}].test'
+            
+            task = shibboleth.Task(filename)
+
+            with self.subTest():
+                self.assertEqual(
+                    task.priority,
+                    priority,
+                    f'Tags: {task.tags!r} - priority: {task.priority}',
+                )
+
+    def test_when_priority_is_changed_it_should_modify_priority_tags(self):
+        old_filename = Path('foo bar [here gone].quux')
+        old_filename.touch()
+        expected_filename = Path('foo bar [here gone 1-now].quux')
+        task = shibboleth.Task(old_filename.name)
+
+        task.priority = '1-now'
+
+        self.assertTrue(expected_filename.exists(), str(os.listdir()))
+
+    def test_when_priority_is_set_to_None_it_should_remove_tag(self):
+        old_filename = Path('foo bar [here gone 1-now].quux')
+        old_filename.touch()
+        expected_filename = Path('foo bar [here gone].quux')
+        task = shibboleth.Task(old_filename.name)
+
+        task.priority = None
+
+        self.assertTrue(expected_filename.exists(), str(os.listdir()))
+
+    def test_colorized_should_set_expected_colors_on_filename(self):
+        filename_template = 'this is [some {}]'
+        for priority in shibboleth.PRIORITIES.values():
+            filename = filename_template.format(priority)
+            expected_filename = filename
+            for tag in ['some', priority]:
+                color = shibboleth.DEFAULT_COLORS.get(tag, '32')
+                colorized = f'\x1b[{color}m{tag}\x1b[0m'
+                expected_filename = expected_filename.replace(tag, colorized)
+            task = shibboleth.Task(filename)
+
+            with self.subTest():
+                self.assertEqual(task.colorized_filename, expected_filename)
+
+    def test_complete_should_remove_priority_and_tag_and_move_to_completed(self):
+        old_filename = Path('foo bar [here gone 1-now].quux')
+        old_filename.touch()
+        expected_filename = Path('completed', 'foo bar [here gone done].quux')
+        task = shibboleth.Task(old_filename.name)
+
+        task.complete()
+
+        self.assertTrue(expected_filename.exists(), str(os.listdir('completed')))
+
+    def test_task_read_should_return_contents_of_the_file(self):
+        expected_text = 'The quick brown fox\njumps\n\nover the\tlazy dogs'
+        old_filename = Path('foo bar [here gone 1-now].quux')
+        old_filename.touch()
+        old_filename.write_text(expected_text)
+
+        task = shibboleth.Task(old_filename.name)
+
+        self.assertEqual(task.read(), expected_text)
 
 
 if __name__ == '__main__':
