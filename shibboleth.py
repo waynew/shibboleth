@@ -339,6 +339,34 @@ class Shibboleth(cmd.Cmd):
             except KeyError:
                 print(f'Unknown priority {line!r}')
 
+    def do_report(self, line):
+        '''
+        Show a breakdown of tasks by priority.
+        '''
+        files = [file for file in Path(line).iterdir() if file.is_file()]
+        by_priority = {
+            None: [],
+            'done': [],
+            '1-now': [],
+            '2-next': [],
+            '3-soon': [],
+            '4-later': [],
+            '5-someday': [],
+            '6-waiting': [],
+        }
+        for file in files:
+            task = Task(file.name)
+            if 'done' in task.tags:
+                by_priority['done'].append(task)
+            else:
+                by_priority[task.priority].append(task)
+
+        for priority in list(PRIORITIES.values()) + ['done', None]:
+            these_ones = by_priority[priority]
+            print(priority, f'({len(these_ones)}/{len(files)})')
+            for task in these_ones:
+                print(f'\t{task.colorized_filename}')
+
     def do_ls(self, line):
         '''
         Show tasks/files in the current (or provided) directory.
