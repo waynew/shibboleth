@@ -1,18 +1,15 @@
-A cli TagSpaces_ client, especially geared towards `The Secret Weapon`_
+A cli [TagSpaces][1] client, especially geared towards [The Secret Weapon][2]
 approach to Getting Things Done.
 
-History
--------
+# History
 
-A few months into 2017 I read Jon Westenberg's post about how `he uses
-Evernote`_ to keep track of all the things that he needs to do. In the article
+A few months into 2017 I read Jon Westenberg's post about how [he uses
+Evernote][3] to keep track of all the things that he needs to do. In the article
 he has some pretty golden advice:
 
-::
-
-    Before I get into it though, I want to be clear. What I do might not work
-    for you. There is no golden key to productivity, and this is pretty
-    specifically designed to match my workflow and my personality.
+> Before I get into it though, I want to be clear. What I do might not work
+> for you. There is no golden key to productivity, and this is pretty
+> specifically designed to match my workflow and my personality.
 
 Which is, of course, fantastic advice.
 
@@ -24,40 +21,37 @@ turn off distractions in your browser and on your phone - but you actually have
 to turn *on* distractions on the command line. So I try to spend most of my
 time here.
 
-About a year ago I also came across TagSpaces_, which has a philosophy I love:
-just stick the information into the filename itself. Then it doesn't matter
-what system you're using, the information is going to travel with the file.
+About a year ago I also came across [TagSpaces][1], which has a philosophy I
+love: just stick the information into the filename itself. Then it doesn't
+matter what system you're using, the information is going to travel with the
+file.
 
 After I read Jon's article, I started trying to use the TagSpaces client. It
 worked well enough, though it wasn't quite as keyboard-centric as I wanted.
 Using Dropbox to sync my files worked great (though they still don't have a
 client for the Raspberry Pi, grumble grumble).
 
-I toyed around with using the command line, ``ls *1-now*`` or ``find . -name
-*3-soon*`` worked pretty well, but it was still a bit clunky. Out of that need
+I toyed around with using the command line, `ls *1-now*` or `find . -name
+*3-soon*` worked pretty well, but it was still a bit clunky. Out of that need
 came Shibboleth
 
-Guide
------
+# Guide
 
 Shibboleth is pretty simple. At the moment it only supports Linux-y systems
 (there's some weirdness on Mac OSX, with readline), but I'm always open to
-`pull requests`_!
+[pull requests][4]!
 
 All you have to do is install shibboleth:
 
-::
-
-    python3.6 -m pip install shibboleth
+> python3.6 -m pip install shibboleth
 
 (Come join me in the glorious future that is Python3.6! Or, if you think it's
 awesome and you live in some horrible reality that requires something ancient,
-I'm totally accepting `pull requests`_)
+did I mention that I'm totally accepting [pull requests][4]?)
 
 Once it's installed, just start it up in whatever directory you want to stick
 your stuff. Maybe you do something like this:
 
-::
 
     $ cd ~/Dropbox/
     $ mkdir secret-weapon
@@ -73,13 +67,11 @@ your stuff. Maybe you do something like this:
     > new
     Title: Try out shibboleth
 
-That will launch your editor - whatever your ``EDITOR`` environment variable is
-set to. Or ``vim``, if nothing is set. ``:q`` is how you get out of Vim, if
+That will launch your editor - whatever your `EDITOR` environment variable is
+set to. Or `vim`, if nothing is set. `:q` is how you get out of Vim, if
 that's not your thing.
 
 Save and quit and you should come back to shibboleth:
-
-::
 
     ⇀shibboleth:/tmp/fnord/Try-out-shibboleth[20170406~011315].md
     >show
@@ -91,23 +83,19 @@ Save and quit and you should come back to shibboleth:
     >
 
 It will automatically select the new file. You may notice that it changed the
-spaces for ``-``. That's because readline is confusing and hard and doesn't
+spaces for `-`. That's because readline is confusing and hard and doesn't
 like autocompleteing spaces. But if you can make it do the right thing, did I
-mention I'm accepting `pull requests`_?
+mention I'm accepting [pull requests][4]?
 
-So you can change the priority of your selected file/task with ``priority``, or
-the shortcut ``p``.
-
-::
+So you can change the priority of your selected file/task with `priority`, or
+the shortcut `p`.
 
     >p 1
     ⇀shibboleth:/tmp/fnord/Try-out-shibboleth[20170406~011315 1-now].md
     >
 
-You can ``deselect`` to drop that, or ``select`` a different file. Or create
-another ``new`` one:
-
-::
+You can `deselect` to drop that, or `select` a different file. Or create
+another `new` one:
 
     >new something completely different
     ⇀shibboleth:/tmp/fnord/something-completely-different[20170406~013345].md
@@ -123,10 +111,8 @@ another ``new`` one:
     ⇀shibboleth:/tmp/fnord/something-completely-different[20170406~013345 4-later].md
     >
 
-You can use ``ls`` to list all the files in the directory, ``cd`` to change
+You can use `ls` to list all the files in the directory, `cd` to change
 directory. Or if you just want to see what you're supposed to be doing now:
-
-::
 
     > now
     trying-out-shibboleth[20170406~013326 1-now].md
@@ -136,10 +122,8 @@ directory. Or if you just want to see what you're supposed to be doing now:
     ⇀shibboleth:/tmp/fnord/trying-out-shibboleth[20170406~013326 1-now].md
     >
 
-Once you're done with a thing, you can ``compelete`` it, or be ``done`` with
+Once you're done with a thing, you can `compelete` it, or be `done` with
 it:
-
-::
 
     >done
     ⇀shibboleth:/tmp/fnord
@@ -151,13 +135,13 @@ it:
 That's really about all there is to it. The way I use this is
 
 - start up shibboleth
-- check my ``waiting`` list to see if there's anything I need to move out of
+- check my `waiting` list to see if there's anything I need to move out of
   waiting.
-- Go through ``someday``, ``later``, ``soon``, and ``next`` to see if anything
+- Go through `someday`, `later`, `soon`, and `next` to see if anything
   needs to be bumped up.
-- Decide which of ``now`` I need to work on the most, then ``s`` elect it. I
-  may ``edit`` it to add some notes or just ``show`` to review what I'm
-  supposed to be doing. Then when I finish that I mark it ``done`` and move on
+- Decide which of `now` I need to work on the most, then `s` elect it. I
+  may `edit` it to add some notes or just `show` to review what I'm
+  supposed to be doing. Then when I finish that I mark it `done` and move on
   to the next.
 
 As new tasks come in via email, etc. I go ahead and add new ones. I've been
@@ -166,9 +150,9 @@ using shibboleth as the interface for my tasks for about a day now and it works
 I've got.
 
 If you've got any suggestions about what would make shibboleth (more) awesome,
-I'm happy to work with you to get your `pull request`_ in. Or if I've got some
-time or I think it's a killer feature, I'm sure I'll add it to my own list.
-Using shibboleth, of course :)
+I'm happy to work with you to get your [pull request][4] in. Or if I've got
+some time or I think it's a killer feature, I'm sure I'll add it to my own
+list. Using shibboleth, of course :)
 
 Philosophy
 ----------
@@ -186,8 +170,7 @@ TODOs
 - config. We want to be able to config shibboleth, right? Different colors and
   what-not.
 
-.. _TagSpaces: https://www.tagspaces.org/
-.. _The Secret Weapon: http://www.thesecretweapon.org/the-secret-weapon-manifesto/manifesto-part-1-the-issue
-.. _he uses Evernote: https://medium.com/hi-my-name-is-jon/how-i-use-evernote-to-pitch-at-the-top-of-my-game-2c5966ef720b
-.. _pull requests: https://github.com/waynew/shibboleth#fork-destination-box
-.. _pull request: https://github.com/waynew/shibboleth#fork-destination-box
+[1]: https://www.tagspaces.org/ "TagSpaces"
+[2]: http://www.thesecretweapon.org/the-secret-weapon-manifesto/manifesto-part-1-the-issue "The Secret Weapon Manifesto"
+[3]: https://medium.com/hi-my-name-is-jon/how-i-use-evernote-to-pitch-at-the-top-of-my-game-2c5966ef720b
+[4]: https://github.com/waynew/shibboleth#fork-destination-box

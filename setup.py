@@ -15,7 +15,8 @@ setup(
     author_email='waynejwerner@gmail.com',
     url='https://github.com/waynew/shibboleth',
     py_modules=['shibboleth'],
-    long_description=read('README.rst'),
+    long_description=read('README.md'),
+    long_description_content_type="text/markdown",
     entry_points = {
         'console_scripts': [
             'shibboleth=shibboleth:run',
