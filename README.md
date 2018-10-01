@@ -165,8 +165,8 @@ directory and you're good to go.
 TODOs
 -----
 
-- Add BSD license
-- Add other tag support
+- ~~Add BSD license~~ - Done 2018-10-01
+- ~~Add other tag support~~ - Done 2018-10-01
 - config. We want to be able to config shibboleth, right? Different colors and
   what-not.
 
