@@ -9,6 +9,7 @@ import pkg_resources
 
 from datetime import datetime
 from textwrap import dedent
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,74 @@ PRIORITIES = {
     '5':'5-someday',
     '6':'6-waiting',
 }
+
+FILENAME_PATTERN = re.compile(r'(?P<title>.*?)\[(?P<tags>.*?)\]\.(?P<ext>.*)')
+
+
+class Tags(list):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.listeners = []
+
+    def _broadcast(self):
+        for listener in self.listeners:
+            listener()
+
+    def append(self, item):
+        super().append(item)
+        self._broadcast()
+
+    def sort(self):
+        super().sort()
+        self._broadcast()
+
+    def remove(self, value):
+        super().remove(value)
+        self._broadcast()
+
+
+class Task:
+    def __init__(self, filename):
+        if '[' in filename:
+            m = re.search(FILENAME_PATTERN, filename)
+            self._title = m.group('title')
+            self.tags = Tags(m.group('tags').split())
+            self.tags.listeners.append(self._on_tag_update)
+            self.ext = m.group('ext')
+        else:
+            self.tags = None
+            data = filename.rsplit('.', maxsplit=1)
+            self._title = data[0]
+            if len(data) > 1:
+                self.ext = data[1]
+            else:
+                self.ext = None
+        self._old_fname = Path(self.filename)
+
+    def _rename(self):
+        self._old_fname.rename(self.filename)
+        self._old_fname = Path(self.filename)
+
+    def _on_tag_update(self):
+        self._rename()
+
+    @property
+    def title(self):
+        return self._title
+
+    @title.setter
+    def title(self, new_title):
+        self._title = new_title
+        self._rename()
+
+    @property
+    def filename(self):
+        if self.tags is None:
+            tags = ''
+        else:
+            tags = f"[{' '.join(self.tags)}]"
+        ext = '.'+self.ext if self.ext else ''
+        return f'{self._title}{tags}{ext}'
 
 
 class Filename:
