@@ -13,7 +13,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-__version__ = '0.1.11'
+__version__ = '0.2.0'
 
 DEFAULT_COLORS = {
     '1-now': 31, #red
