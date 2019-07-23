@@ -1,11 +1,13 @@
 import cmd
+import functools
 import glob
 import logging
 import os
+import pkg_resources
 import re
 import readline
 import sys
-import pkg_resources
+import types
 
 from datetime import datetime
 from textwrap import dedent
@@ -34,6 +36,34 @@ PRIORITIES = {
 
 TAG_PATTERN = re.compile(r'(?P<title>.*?)\[(?P<tags>.*?)\](\.(?P<ext>.*))?')
 NO_TAG_PATTERN = re.compile(r'(?P<title>[^.]*)(?:\.(?P<ext>.*))?')
+
+
+def load_plugins(plugin_dir='~/.shibboleth/plugins'):
+    plugins = {}
+    plugin_dir = os.path.expanduser(plugin_dir)
+    for fname in (f for f in os.listdir(plugin_dir) if f.endswith('.py')):
+        plugname = os.path.basename(fname).rsplit('.', maxsplit=1)[0]
+        modname = 'shibboleth.ext.'+plugname
+        if modname in sys.modules:
+            plugins[plugname] = sys.modules[modname]
+        else:
+            with open(os.path.join(plugin_dir, fname), 'r') as f:
+                sourcecode = f.read()
+            mod = types.ModuleType(modname)
+            mod.__file__ = fname
+            code = compile(sourcecode, fname, 'exec')
+            exec(code, mod.__dict__)
+            plugins[plugname] = sys.modules[modname] = mod
+    return plugins
+
+
+def register_plugin(name):
+    def wrapper(func):
+        print(id(Shibboleth))
+        @functools.wraps(func)
+        def f(*args, **kwargs):
+            return func(*args, **kwargs)
+    return wrapper
 
 
 class Tags(list):
@@ -154,7 +184,12 @@ class Task:
 
 
 class Shibboleth(cmd.Cmd):
+    plugins = load_plugins()
+
     def __init__(self):
+        # Register plugins before calling super's init
+        for plugin in self.plugins:
+            setattr(Shibboleth, 'do_'+plugin, types.MethodType(self.plugins[plugin].handle, self))
         super().__init__()
         self.prompt = f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{os.getcwd()}\n>'
         self.selected = None
@@ -170,6 +205,7 @@ class Shibboleth(cmd.Cmd):
         Your editor is currently {self.editor}. If you don't like that, you
         should change or set your EDITOR environment variable.
         ''')
+
 
     def display_completion(self, substitution, matches, longest_match_length):
         logger.debug('>>display_completion')
@@ -206,6 +242,14 @@ class Shibboleth(cmd.Cmd):
         if self.selected:
             self.prompt = f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{self.selected.colorized_filename}\n>'
         return stop
+
+    def default(self, line):
+        plugname, _, newline = line.partition(' ')
+        newline = newline.strip()
+        try:
+            self.plugins[plugname].handle(newline)
+        except (AttributeError, KeyError):
+            super().default(line)
 
     def do_cd(self, line):
         '''
@@ -424,7 +468,7 @@ class Shibboleth(cmd.Cmd):
             task.complete()
         self.selected = None
 
-    def do_new(self, line):
+    def do_new(self, line, content=''):
         '''
         Create a new task with the provided title, or ask for one, and
         set it as the active task.
@@ -435,6 +479,8 @@ class Shibboleth(cmd.Cmd):
         else:
             title = input('Title: ').strip().replace(' ', '-')
         filename = f'{title}[{datetime.now():%Y%m%d~%H%M%S}].md'
+        if content:
+            Path(filename).write_text(content)
         self.selected = None
         self.do_edit(filename)
         self.do_select(filename)
