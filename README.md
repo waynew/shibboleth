@@ -162,6 +162,30 @@ opposed to adding some kind of plugin architecture, but I *really* want
 shibboleth to stay one single file. That way you can just stick it in a
 directory and you're good to go.
 
+Plugins
+-------
+
+I've added a plugin architecture! Currently it requires plugins to be found in
+`~/.shibboleth/plugins`. Plugins will be attached to Shibboleth's main loop as
+if they were methods, using the filename as the name of the command. For
+instance, if you wanted to add a really bad pomodoro timer, you could do that
+by creating a `pom.py` in the plugin directory that contained the following:
+
+    import time
+
+
+    def handle(self, line):
+        print('Pomodoro', line)
+        time.sleep(60*20)  # sleep for 20 minutes
+        print('Pomodoro done!')
+
+If you wanted to make it drop straight into the editor you could add:
+
+        self.edit('')
+
+At the end of the function.
+
+
 TODOs
 -----
 
@@ -169,6 +193,22 @@ TODOs
 - ~~Add other tag support~~ - Done 2018-10-01
 - config. We want to be able to config shibboleth, right? Different colors and
   what-not.
+
+CHANGELOG
+---------
+
+## [Unreleased]
+
+---
+
+## [0.3.0]
+
+### Added
+
+- Plugin system. Add `.py` files to `~/.shibboleth/plugins` to extend the
+  functionality of Shibboleth.
+- Keep a changelog functionality for the changelog.
+
 
 [1]: https://www.tagspaces.org/ "TagSpaces"
 [2]: http://www.thesecretweapon.org/the-secret-weapon-manifesto/manifesto-part-1-the-issue "The Secret Weapon Manifesto"

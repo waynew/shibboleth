@@ -15,7 +15,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-__version__ = '0.2.0'
+__version__ = '0.3.0'
 
 DEFAULT_COLORS = {
     '1-now': 31, #red
@@ -41,6 +41,9 @@ NO_TAG_PATTERN = re.compile(r'(?P<title>[^.]*)(?:\.(?P<ext>.*))?')
 def load_plugins(plugin_dir='~/.shibboleth/plugins'):
     plugins = {}
     plugin_dir = os.path.expanduser(plugin_dir)
+    if not os.path.exists(plugin_dir):
+        logger.info('No plugin dir %r exists', plugin_dir)
+        return
     for fname in (f for f in os.listdir(plugin_dir) if f.endswith('.py')):
         plugname = os.path.basename(fname).rsplit('.', maxsplit=1)[0]
         modname = 'shibboleth.ext.'+plugname
