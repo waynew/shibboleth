@@ -199,6 +199,10 @@ CHANGELOG
 
 ## [Unreleased]
 
+---
+
+## [0.4.0] - [2019-07-31]
+
 ### Added
 
 - Review command that lets you cycle through your tasks, updating priorities.
@@ -207,8 +211,6 @@ CHANGELOG
 
 - Duplicate tags are no longer allowed, though if added outside Shibboleth they
   will not be interfered with.
-
----
 
 ## [0.3.0]
 
