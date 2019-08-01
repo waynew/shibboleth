@@ -199,6 +199,15 @@ CHANGELOG
 
 ## [Unreleased]
 
+### Added
+
+- Review command that lets you cycle through your tasks, updating priorities.
+
+### Changed
+
+- Duplicate tags are no longer allowed, though if added outside Shibboleth they
+  will not be interfered with.
+
 ---
 
 ## [0.3.0]

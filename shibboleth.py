@@ -15,7 +15,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 
 DEFAULT_COLORS = {
     '1-now': 31, #red
@@ -38,12 +38,18 @@ TAG_PATTERN = re.compile(r'(?P<title>.*?)\[(?P<tags>.*?)\](\.(?P<ext>.*))?')
 NO_TAG_PATTERN = re.compile(r'(?P<title>[^.]*)(?:\.(?P<ext>.*))?')
 
 
+def edit(editor, flags, filename):
+    if editor.lower() in ('vi', 'vim'):
+        flags = "-n " + flags
+    os.system(f'{editor} {flags} "{filename}"')
+
+
 def load_plugins(plugin_dir='~/.shibboleth/plugins'):
     plugins = {}
     plugin_dir = os.path.expanduser(plugin_dir)
     if not os.path.exists(plugin_dir):
         logger.info('No plugin dir %r exists', plugin_dir)
-        return
+        return plugins
     for fname in (f for f in os.listdir(plugin_dir) if f.endswith('.py')):
         plugname = os.path.basename(fname).rsplit('.', maxsplit=1)[0]
         modname = 'shibboleth.ext.'+plugname
@@ -79,11 +85,12 @@ class Tags(list):
             listener()
 
     def append(self, item):
-        super().append(item)
+        if item not in self:
+            super().append(item)
         self._broadcast()
 
     def extend(self, items):
-        super().extend(items)
+        super().extend(i for i in items if i not in self)
         self._broadcast()
 
     def sort(self):
@@ -184,6 +191,136 @@ class Task:
 
     def read(self):
         return self._old_fname.read_text()
+
+
+def tasks_by_priority():
+    files = [file for file in Path().iterdir() if file.is_file()]
+    priorities = tuple(PRIORITIES.values()) + ('done', None)
+    by_priority = {
+        None: [],
+        'done': [],
+        '1-now': [],
+        '2-next': [],
+        '3-soon': [],
+        '4-later': [],
+        '5-someday': [],
+        '6-waiting': [],
+    }
+    for file in files:
+        task = Task(file.name)
+        if 'done' in task.tags:
+            by_priority['done'].append(task)
+        else:
+            by_priority[task.priority].append(task)
+    for priority in priorities:
+        yield priority, by_priority[priority]
+
+
+class Reviewer(cmd.Cmd):
+    def __init__(self, editor):
+        super().__init__()
+        self.editor = editor
+        self.tasks = tuple(tasks_by_priority())
+        self.priorities = reversed(list(t[0] for t in self.tasks if t[1]))
+        self.tasks = dict(self.tasks)
+        self._priority_iter = iter(self.priorities)
+        self._cur_priority = next(self._priority_iter)
+        self._index = 0
+
+    def next(self):
+        if self._index+1 < len(self.tasks[self._cur_priority]):
+            self._index += 1
+        else:
+            self._index = 0
+            try:
+                self._cur_priority = next(self._priority_iter)
+            except StopIteration:
+                return True
+
+    @property
+    def _cur(self):
+        return self.tasks[self._cur_priority][self._index]
+
+    @property
+    def prompt(self):
+        color = DEFAULT_COLORS.get(self._cur_priority, '32')
+        colorized = f'\x1b[{color}m{self._cur_priority}\x1b[0m'
+        return f'''\
+{self._cur.colorized_filename}
+Review ({self._index+1}/{len(self.tasks[self._cur_priority])}) {colorized} [?/1-6/d/e/s/n/q]> '''
+
+    def do_help(self, line):
+        '''
+        Display help.
+        '''
+        print('''
+Review Commands
+===============
+?   help
+e   edit/view task
+1-6 set task priority
+s   skip/do not modify task
+d   mark task as done
+n   next priority
+q   quit review
+''')
+
+    def do_e(self, line):
+        '''
+        Edit the task.
+        '''
+        edit(self.editor, '', self._cur.filename)
+
+    def do_1(self, line):
+        self._cur.priority = PRIORITIES['1']
+        return self.next()
+
+    def do_2(self, line):
+        self._cur.priority = PRIORITIES['2']
+        return self.next()
+
+    def do_3(self, line):
+        self._cur.priority = PRIORITIES['3']
+        return self.next()
+
+    def do_4(self, line):
+        self._cur.priority = PRIORITIES['4']
+        return self.next()
+
+    def do_5(self, line):
+        self._cur.priority = PRIORITIES['5']
+        return self.next()
+
+    def do_6(self, line):
+        self._cur.priority = PRIORITIES['6']
+        return self.next()
+
+    def do_s(self, line):
+        '''
+        Skip/do not change/update task.
+        '''
+        return self.next()
+
+    def do_d(self, line):
+        '''
+        Mark task as completed.
+        '''
+        self._cur.complete()
+        return self.next()
+
+    def do_n(self, line):
+        '''
+        Next priority.
+        '''
+        self._index = len(self.tasks[self._cur_priority])
+        return self.next()
+
+    def do_q(self, line):
+        '''
+        Quit review.
+        '''
+        print('Quitting review')
+        return True
 
 
 class Shibboleth(cmd.Cmd):
@@ -386,6 +523,13 @@ class Shibboleth(cmd.Cmd):
             except KeyError:
                 print(f'Unknown priority {line!r}')
 
+    def do_review(self, line):
+        '''
+        Review and quickly update the priority of your tasks.
+        '''
+        r = Reviewer(self.editor)
+        r.cmdloop()
+
     def do_report(self, line):
         '''
         Show a breakdown of tasks by priority.
@@ -453,9 +597,7 @@ class Shibboleth(cmd.Cmd):
         else:
             filename = self.selected.filename if self.selected else line
 
-        if self.editor in ('vi', 'vim'):
-            flags = "-n " + flags
-        os.system(f'{self.editor} {flags} "{filename}"')
+        edit(self.editor, flags, filename)
 
     def do_complete(self, line):
         '''
