@@ -201,6 +201,13 @@ CHANGELOG
 
 ---
 
+## [0.4.1] - [2019-10-14]
+
+### Changed
+
+- `cmdloop` passes on `*args` and `**kwargs` - useful for running loops from
+  plugins.
+
 ## [0.4.0] - [2019-07-31]
 
 ### Added

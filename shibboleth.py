@@ -15,7 +15,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 DEFAULT_COLORS = {
     '1-now': 31, #red
@@ -366,11 +366,11 @@ class Shibboleth(cmd.Cmd):
         logger.debug('Result: %r', res)
         return res
 
-    def cmdloop(self):
+    def cmdloop(self, *args, **kwargs):
         logger.debug('>>cmdloop')
         while True:
             try:
-                super().cmdloop()
+                super().cmdloop(*args, **kwargs)
                 break
             except KeyboardInterrupt:
                 print()
