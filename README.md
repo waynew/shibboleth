@@ -201,6 +201,19 @@ CHANGELOG
 
 ---
 
+## [0.5.0] - [2019-10-15]
+
+### Added
+
+- `work` subcommand, to allow you to quickly process a particular priority. By
+  default, it will work `1-now`, but `work 2` will work the "next" tasks.
+- `version` command, to display the current version of shibboleth.
+
+### Changed
+
+- Updated how prompt is generated. Shouldn't cause an issue, but something to
+  be aware of, especially in plugins.
+
 ## [0.4.1] - [2019-10-14]
 
 ### Changed

@@ -738,6 +738,12 @@ class Shibboleth(cmd.Cmd):
             logger.addHandler(h)
             logger.info('Logging turned on, level - %r', level)
 
+    def do_version(self, line):
+        '''
+        Display shibboleth version.
+        '''
+        print(__version__)
+
     # Aliases
     do_p = do_priority
     do_e = do_edit
