@@ -15,7 +15,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-__version__ = '0.4.1'
+__version__ = '0.5.0'
 
 DEFAULT_COLORS = {
     '1-now': 31, #red
@@ -116,7 +116,7 @@ class Task:
         self.ext = m.group('ext')
 
         self.tags.listeners.append(self._on_tag_update)
-        self._old_fname = Path(self.filename)
+        self._old_fname = Path(self.filename).expanduser().resolve()
 
         if '1-now' in self.tags:
             self._priority = '1-now'
@@ -135,7 +135,7 @@ class Task:
 
     def _rename(self):
         self._old_fname.rename(self.filename)
-        self._old_fname = Path(self.filename)
+        self._old_fname = Path(self.filename).expanduser().resolve()
 
     def _on_tag_update(self):
         self._rename()
@@ -188,6 +188,11 @@ class Task:
         self.tags.append('done')
         new_path = completed_dir / Path(self.filename).name
         Path(self.filename).rename(new_path)
+        # TODO: Could we do a better job at renaming here? -W. Werner, 2019-10-15
+        # There's the _rename function, but it seems like it's
+        # a bit different than what we're doing here. I bet we
+        # could properly unify this thing.
+        self._old_fname = new_path
 
     def read(self):
         return self._old_fname.read_text()
@@ -331,7 +336,6 @@ class Shibboleth(cmd.Cmd):
         for plugin in self.plugins:
             setattr(Shibboleth, 'do_'+plugin, types.MethodType(self.plugins[plugin].handle, self))
         super().__init__()
-        self.prompt = f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{os.getcwd()}\n>'
         self.selected = None
         readline.set_completion_display_matches_hook(self.display_completion)
         readline.set_completer_delims(
@@ -345,6 +349,12 @@ class Shibboleth(cmd.Cmd):
         Your editor is currently {self.editor}. If you don't like that, you
         should change or set your EDITOR environment variable.
         ''')
+
+    @property
+    def prompt(self):
+        if self.selected:
+            return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{self.selected.colorized_filename}\n>'
+        return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{os.getcwd()}\n>'
 
 
     def display_completion(self, substitution, matches, longest_match_length):
@@ -375,13 +385,6 @@ class Shibboleth(cmd.Cmd):
             except KeyboardInterrupt:
                 print()
                 print('^C caught - use `q` to quit')
-
-    def postcmd(self, stop, line):
-        logger.debug('>>postcmd')
-        self.prompt = f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{os.getcwd()}\n>'
-        if self.selected:
-            self.prompt = f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{self.selected.colorized_filename}\n>'
-        return stop
 
     def default(self, line):
         plugname, _, newline = line.partition(' ')
@@ -437,6 +440,25 @@ class Shibboleth(cmd.Cmd):
             elif target:
                 if target in file_.tags:
                     print(file_.colorized_filename)
+
+    def do_work(self, line):
+        '''
+        Work tasks of a given priority, default of 1-now.
+        '''
+        try:
+            priority = PRIORITIES[line or '1']
+        except KeyError:
+            if line in PRIORITIES.values():
+                priority = line
+            else:
+                print(f'Unknown priority {line!r}')
+        else:
+            all_tasks = (Task(name) for name in os.listdir(os.path.curdir))
+            tasks_to_work = [task for task in all_tasks if priority in task.tags]
+            worker = Worker(tasks_to_work)
+            worker.cmdloop()
+            return worker.result
+
 
     def do_now(self, line):
         '''
@@ -629,6 +651,7 @@ class Shibboleth(cmd.Cmd):
         self.selected = None
         self.do_edit(filename)
         self.do_select(filename)
+        self.do_priority('1')
 
     def do_did(self, line):
         '''
@@ -725,6 +748,71 @@ class Shibboleth(cmd.Cmd):
     do_stop = do_deselect
     complete_sel = complete_select
     complete_e = complete_edit
+
+
+class Worker(Shibboleth):
+    def __init__(self, tasks_to_work):
+        super().__init__()
+        self.tasks = tasks_to_work
+        self.intro = dedent(f'''
+        {len(tasks_to_work)} tasks in this priority.
+        ''')
+        self.index = -1
+        self.do_next('')
+        self.result = None
+        self.postcmd(None, '')
+
+    @property
+    def prompt(self):
+        return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{self.selected.colorized_filename}\n{self.index+1}/{len(self.tasks)}>'
+
+    def do_ls(self, line):
+        '''
+        List the tasks, indicating the current one.
+        '''
+
+        for i, task in enumerate(self.tasks):
+            arrow = '\N{RIGHTWARDS HARPOON WITH BARB UPWARDS} ' if i == self.index else ''
+            print(f"{arrow}{task.colorized_filename}")
+
+    def do_next(self, line):
+        '''
+        Go to the next task to work. If all tasks have been
+        worked, go back to the main shibboleth prompt.
+        '''
+        self.index += 1
+        if self.index >= len(self.tasks):
+            print('All done! Good job!')
+            return True
+        else:
+            self.selected = self.tasks[self.index]
+
+    def do_prev(self, line):
+        '''
+        Go to the previous task to work.
+        '''
+        self.index = max(self.index-1, 0)
+        self.selected = self.tasks[self.index]
+
+    def do_done(self, line):
+        super().do_done(line)
+        return self.do_next(line)
+
+    def do_priority(self, line):
+        super().do_priority(line)
+        return self.do_next(line)
+
+    def do_stop(self, line):
+        '''
+        Stop working this task list and return to Shibboleth.
+        '''
+        return True
+
+
+    do_deselect = do_next
+    do_skip = do_next
+    do_p = do_priority
+    do_q = do_quit = do_stop
 
 
 def run():
