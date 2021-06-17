@@ -1,4 +1,6 @@
 import cmd
+import webbrowser
+from collections import defaultdict
 import functools
 import glob
 import logging
@@ -15,7 +17,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 
 DEFAULT_COLORS = {
     '1-now': 31, #red
@@ -723,6 +725,9 @@ class Shibboleth(cmd.Cmd):
         log off -> stop logging
         '''
         logger.debug('>>do_log')
+        if not line:
+            print('Usage: log [on|off]')
+            return
         action, *rest = line.split(None, maxsplit=1)
         if action == 'off':
             logger.info('Turning logging off')
@@ -737,6 +742,48 @@ class Shibboleth(cmd.Cmd):
             logger.setLevel(level)
             logger.addHandler(h)
             logger.info('Logging turned on, level - %r', level)
+
+    def do_launch(self, line):
+        """
+        Look for URL headers in the current (or specified) task and open them in
+        the web browser. If only one URL header is found, it will be launched
+        automatically. Otherwise, you will be able to select any of them.
+        """
+        last = None
+        headers = defaultdict(list)
+        filename = self.selected.filename if self.selected else line
+        with open(filename) as f:
+            for line in f:
+                if last == line == '\n':
+                    break
+                else:
+                    key, _, val = line.strip().partition(':')
+                    if val:
+                        headers[key].append(val)
+        urls = headers.get('URL')
+        if not urls:
+            print('No URL headers found')
+        else:
+            urlcount = len(urls)
+            choices = [0]
+            if urlcount > 1:
+                for i, url in enumerate(urls, start=1):
+                    print(f"{i}. {url}")
+                done = False
+                while not done:
+                    choices = input(f'Select urls [1-{i}, empty launches all. Select many by spaces]: ').strip()
+                    if not choices:
+                        choices = list(range(urlcount))
+                        done = True
+                    else:
+                        try:
+                            choices = [int(c)-1 for c in choices.split()]
+                            done = True
+                        except ValueError:
+                            logger.exception('Non-number in choices')
+                            print('Non-number found')
+            for choice in choices:
+                webbrowser.open(urls[choice])
 
     def do_version(self, line):
         '''
@@ -827,7 +874,19 @@ def run():
     if sys.argv[1:]:
         shibby.onecmd(' '.join(sys.argv[1:]))
     else:
-        shibby.cmdloop()
+        try:
+            shibby.cmdloop()
+        except:
+            h = logging.FileHandler(
+                'shibboleth.log'
+            )
+            h.setLevel(logging.DEBUG)
+            logger.setLevel(logging.DEBUG)
+            logger.addHandler(h)
+            logger.exception("Unhandled exception")
+            logger.critical("Unable to recover, shutting down")
+            print("Oh no! Shibboleth had a problem and had to close. Log written to shibboleth.log")
+            exit(99)
 
 if __name__ == '__main__':
     run()

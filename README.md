@@ -201,6 +201,15 @@ CHANGELOG
 
 ---
 
+## [0.6.0] - [2021-06-17]
+
+## Fixed
+
+- Unhandled exceptions are now caught and written to shibboleth.log instead of
+  crashing.
+- Added `launch` command, which will launch URLs found in headers in the task
+  file.
+
 ## [0.5.0] - [2019-10-15]
 
 ### Added

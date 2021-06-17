@@ -1,7 +1,9 @@
 import os
+import io
 import shibboleth
 import tempfile
 import unittest
+import unittest.mock as mock
 
 from pathlib import Path
 
@@ -218,6 +220,18 @@ class TestShibbolethTask(unittest.TestCase):
         task = shibboleth.Task(old_filename.name)
 
         self.assertEqual(task.read(), expected_text)
+
+
+    ###############################################################
+    ###############################################################
+    ## TODO: These need their own test class? Or move to pytest? ##
+    ###############################################################
+    ###############################################################
+    def test_log_command(self):
+        with mock.patch('sys.stdout', io.StringIO()) as fake_out:
+            result = shibboleth.Shibboleth().onecmd('log')
+            fake_out.seek(0)
+            self.assertEqual(fake_out.read(), 'Usage: log [on|off]\n')
 
 
 if __name__ == '__main__':
