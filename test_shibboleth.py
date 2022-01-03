@@ -228,10 +228,19 @@ class TestShibbolethTask(unittest.TestCase):
     ###############################################################
     ###############################################################
     def test_log_command(self):
+        expected_log = "Logging turned on, level - 'INFO'\nTurning logging off\n"
+        expected_stdout = 'Logging is OFF\nLogging is ON - writing to shibboleth.log\nLogging is OFF\n'
         with mock.patch('sys.stdout', io.StringIO()) as fake_out:
-            result = shibboleth.Shibboleth().onecmd('log')
+            shib = shibboleth.Shibboleth()
+            shib.onecmd('log')
+            shib.onecmd('log on info')
+            shib.onecmd('log off')
             fake_out.seek(0)
-            self.assertEqual(fake_out.read(), 'Usage: log [on|off]\n')
+            self.assertEqual(fake_out.read(), expected_stdout)
+        os.system('cp shibboleth.log /tmp/shib.log')
+        with open('shibboleth.log') as f:
+            log = f.read()
+            self.assertEqual(log, expected_log)
 
 
 if __name__ == '__main__':

@@ -779,7 +779,10 @@ class Shibboleth(cmd.Cmd):
         level = level.strip()
         if action == 'off':
             logger.info('Turning logging off')
-            logger.handlers.clear()
+            for handler in logger.handlers[:]:
+                handler.flush()
+                handler.close()
+                logger.removeHandler(handler)
         elif action == 'on':
             level = getattr(logging, level.upper() or 'DEBUG')
             logger.handlers.clear()
@@ -787,7 +790,7 @@ class Shibboleth(cmd.Cmd):
             h.setLevel(level)
             logger.setLevel(level)
             logger.addHandler(h)
-            logger.info('Logging turned on, level - %r', level)
+            logger.info('Logging turned on, level - %r', logging.getLevelName(level))
         if logger.handlers:
             print('Logging is ON - writing to shibboleth.log')
         else:

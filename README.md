@@ -257,8 +257,6 @@ CHANGELOG
 
 ### Changed
 
-- Default priority is now `now` - this helps with tasks falling through the
-  cracks.
 - `did` now inserts timestamps with a header instead of relying on the
   blank-space-at-the-end-of-a-line for CommonMark rendering.
 
@@ -290,6 +288,8 @@ CHANGELOG
 
 - Updated how prompt is generated. Shouldn't cause an issue, but something to
   be aware of, especially in plugins.
+- Default priority is now `now` - this helps with tasks falling through the
+  cracks.
 
 ## [0.4.1] - [2019-10-14]
 
