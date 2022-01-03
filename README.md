@@ -218,6 +218,10 @@ CHANGELOG
 - `clear` priority to... well, clear the priority!
 - Title is now inserted automatically into the file.
 
+### Changed
+
+- Default priority is now `now` - this helps with tasks falling through the
+  cracks.
 
 ### Fixed
 
