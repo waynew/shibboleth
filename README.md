@@ -188,7 +188,7 @@ some time or I think it's a killer feature, I'm sure I'll add it to my own
 list. Using shibboleth, of course :)
 
 
-<a id="philosophy">
+<a id="philosophy" />
 
 Philosophy
 ----------
@@ -199,7 +199,7 @@ I *really* want shibboleth to stay one single file. That way you can just stick
 it in a directory and you're good to go.
 
 
-<a id="plugins">
+<a id="plugins" />
 
 Plugins
 -------
@@ -225,7 +225,7 @@ If you wanted to make it drop straight into the editor you could add:
 At the end of the function.
 
 
-<a id="auto_git_tracking">
+<a id="auto_git_tracking" />
 
 Automatic Git Tracking
 ----------------------
@@ -246,7 +246,7 @@ TODOs
 - config. We want to be able to config shibboleth, right? Different colors and
   what-not.
 
-<a id="changelog">
+<a id="changelog" />
 
 CHANGELOG
 ---------
