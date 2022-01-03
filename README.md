@@ -165,18 +165,20 @@ it:
 That's really about all there is to it. The way I use Shibboleth for my
 day-to-day:
 
-- start up shibboleth
-- check my `waiting` list to see if there's anything I need to move out of
-  waiting.
-- Go through `someday`, `later`, `soon`, and `next` to see if anything
-  needs to be bumped up.
-- Decide which of `now` I need to work on the most, then `s` elect it. I
-  may `edit` it to add some notes or just `show` to review what I'm
-  supposed to be doing. Then when I finish that I mark it `done` and move on
-  to the next.
+- Start up shibboleth.
+- `select startup` which contains a bunch of URLs that I need to open.
+- `launch` to open up all my startup URLs.
+- `work 6` to work my waiting list, to see if there's anything I need to move
+  out of waiting.
+- Go through `someday`, `later`, `soon`, and `next` to see if anything needs to
+  be bumped up.
+- Decide which of `now` I need to work on the most, then `s` elect it. I may
+  `ed` it to add some notes or just `show` to review what I'm supposed to be
+  doing, and probably `launch` the relevant URLs. Then when I finish that I
+  mark it `done` and move on to the next.
 
 As new tasks come in via email, etc. I go ahead and add new ones. I've been
-using shibboleth as the interface for my tasks for about a day now and it works
+using shibboleth as the interface for my tasks for a while now and it works
 *great* for shifting the priority, creating new tasks, and editing ones that
 I've got.
 
@@ -243,6 +245,8 @@ TODOs
 - ~~Add other tag support~~ - Done 2018-10-01
 - config. We want to be able to config shibboleth, right? Different colors and
   what-not.
+
+<a id="changelog">
 
 CHANGELOG
 ---------
