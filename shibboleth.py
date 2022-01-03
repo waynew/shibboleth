@@ -691,14 +691,14 @@ class Shibboleth(cmd.Cmd):
         '''
         logger.debug('>>do_new')
         if line:
-            title = line.replace(' ', '-')
+            title = line.strip()
         else:
-            title = input('Title: ').strip().replace(' ', '-')
-        filename = f'{title}[{datetime.now():%Y%m%d~%H%M%S}].md'
-        if content:
-            Path(filename).write_text(content)
+            title = input('Title: ').strip()
+        filename = f'{title.replace(" ", "-")}[{datetime.now():%Y%m%d~%H%M%S}].md'
+        content = content or f'Title: {title}\n\n'
+        Path(filename).write_text(content)
         self.selected = None
-        self.do_edit(filename)
+        self.do_edit(filename, flags="+'normal Go'")
         self.do_select(filename)
         self.do_priority('1')
 

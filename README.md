@@ -216,6 +216,8 @@ CHANGELOG
 
 - [Automatic git tracking](#auto_git_tracking).
 - `clear` priority to... well, clear the priority!
+- Title is now inserted automatically into the file.
+
 
 ### Fixed
 
