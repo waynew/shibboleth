@@ -19,7 +19,7 @@ from textwrap import dedent
 
 logger = logging.getLogger(__name__)
 
-__version__ = '0.7.0rc0'
+__version__ = '0.7.0'
 
 DEFAULT_COLORS = {
     '1-now': 31,  # red
