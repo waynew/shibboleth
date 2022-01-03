@@ -716,7 +716,8 @@ class Shibboleth(cmd.Cmd):
         else:
             task = self.selected if self.selected else Task(line)
             with open(task.filename, 'a') as f:
-                print(f'\n{datetime.now():%Y-%m-%d %H:%M:%S %Z}', file=f)
+                header = f'\n\n{datetime.now():%Y-%m-%d %H:%M:%S}\n{"="*19}\n'
+                print(header, file=f)
             self.do_edit(task.filename, flags="+'normal Go' -c 'startinsert'")
 
     def do_tag(self, line):
