@@ -20,20 +20,20 @@ logger = logging.getLogger(__name__)
 __version__ = '0.6.0'
 
 DEFAULT_COLORS = {
-    '1-now': 31, #red
-    '2-next': 34, #blue
-    '3-soon': 92, #light green
-    '4-later': 32, #green
-    '5-someday': 90, #dark gray
-    '6-waiting': 95, # light pink?
+    '1-now': 31,  # red
+    '2-next': 34,  # blue
+    '3-soon': 92,  # light green
+    '4-later': 32,  # green
+    '5-someday': 90,  # dark gray
+    '6-waiting': 95,  # light pink?
 }
 PRIORITIES = {
-    '1':'1-now',
-    '2':'2-next',
-    '3':'3-soon',
-    '4':'4-later',
-    '5':'5-someday',
-    '6':'6-waiting',
+    '1': '1-now',
+    '2': '2-next',
+    '3': '3-soon',
+    '4': '4-later',
+    '5': '5-someday',
+    '6': '6-waiting',
 }
 
 TAG_PATTERN = re.compile(r'(?P<title>.*?)\[(?P<tags>.*?)\](\.(?P<ext>.*))?')
@@ -54,7 +54,7 @@ def load_plugins(plugin_dir='~/.shibboleth/plugins'):
         return plugins
     for fname in (f for f in os.listdir(plugin_dir) if f.endswith('.py')):
         plugname = os.path.basename(fname).rsplit('.', maxsplit=1)[0]
-        modname = 'shibboleth.ext.'+plugname
+        modname = 'shibboleth.ext.' + plugname
         if modname in sys.modules:
             plugins[plugname] = sys.modules[modname]
         else:
@@ -71,9 +71,11 @@ def load_plugins(plugin_dir='~/.shibboleth/plugins'):
 def register_plugin(name):
     def wrapper(func):
         print(id(Shibboleth))
+
         @functools.wraps(func)
         def f(*args, **kwargs):
             return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -171,7 +173,7 @@ class Task:
             tags = ''
         else:
             tags = f"[{' '.join(self.tags)}]"
-        ext = '.'+self.ext if self.ext else ''
+        ext = '.' + self.ext if self.ext else ''
         return f'{self._title}{tags}{ext}'
 
     @property
@@ -336,15 +338,18 @@ class Shibboleth(cmd.Cmd):
     def __init__(self):
         # Register plugins before calling super's init
         for plugin in self.plugins:
-            setattr(Shibboleth, 'do_'+plugin, types.MethodType(self.plugins[plugin].handle, self))
+            setattr(
+                Shibboleth,
+                'do_' + plugin,
+                types.MethodType(self.plugins[plugin].handle, self),
+            )
         super().__init__()
         self.selected = None
         readline.set_completion_display_matches_hook(self.display_completion)
-        readline.set_completer_delims(
-            readline.get_completer_delims().replace('-', '')
-        )
+        readline.set_completer_delims(readline.get_completer_delims().replace('-', ''))
         self.editor = os.environ.get('EDITOR', 'vim')
-        self.intro = dedent(f'''
+        self.intro = dedent(
+            f'''
         Welcome to Shibboleth {__version__}, the tool designed to be *your*
         secret weapon.
 
@@ -357,7 +362,6 @@ class Shibboleth(cmd.Cmd):
         if self.selected:
             return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{self.selected.colorized_filename}\n>'
         return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{os.getcwd()}\n>'
-
 
     def display_completion(self, substitution, matches, longest_match_length):
         logger.debug('>>display_completion')
@@ -373,7 +377,7 @@ class Shibboleth(cmd.Cmd):
         cmd = readline.get_line_buffer().split(None, maxsplit=1)[0]
         if cmd in ('sel', 'select', 'e', 'edit'):
             pass
-        #else:
+        # else:
         res = super().complete(*args, **kwargs)
         logger.debug('Result: %r', res)
         return res
@@ -387,6 +391,14 @@ class Shibboleth(cmd.Cmd):
             except KeyboardInterrupt:
                 print()
                 print('^C caught - use `q` to quit')
+
+    def postcmd(self, stop, line):
+        print(f'postcmd {stop=!r} {line=!r}')
+        logger.debug('>>postcmd')
+        self.prompt = f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{os.getcwd()}\n>'
+        if self.selected:
+            self.prompt = f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{self.selected.colorized_filename}\n>'
+        return stop
 
     def default(self, line):
         plugname, _, newline = line.partition(' ')
@@ -410,7 +422,7 @@ class Shibboleth(cmd.Cmd):
 
     def complete_cd(self, text, line, begidx, endidx):
         logger.debug('>>complete_cd')
-        paths = glob.glob(text+'*')
+        paths = glob.glob(text + '*')
         return paths
 
     def do_pls(self, line):
@@ -526,7 +538,7 @@ class Shibboleth(cmd.Cmd):
 
     def complete_select(self, text, line, begidx, endidx):
         logger.debug('>>complete_select')
-        paths = glob.glob(text+'*')
+        paths = glob.glob(text + '*')
         logger.debug('Possible paths: %r', paths)
         return paths
 
@@ -606,10 +618,10 @@ class Shibboleth(cmd.Cmd):
             print('Select a file and try again')
         else:
             filename = self.selected.filename if self.selected else line
-            print('*'*80)
+            print('*' * 80)
             with open(filename) as f:
                 print(self.selected.read())
-            print('*'*80)
+            print('*' * 80)
 
     def do_edit(self, line, flags=''):
         '''
@@ -735,9 +747,7 @@ class Shibboleth(cmd.Cmd):
         elif action == 'on':
             level = getattr(logging, ''.join(rest).upper() or 'DEBUG')
             logger.handlers.clear()
-            h = logging.FileHandler(
-                'shibboleth.log'
-            )
+            h = logging.FileHandler('shibboleth.log')
             h.setLevel(level)
             logger.setLevel(level)
             logger.addHandler(h)
@@ -887,6 +897,7 @@ def run():
             logger.critical("Unable to recover, shutting down")
             print("Oh no! Shibboleth had a problem and had to close. Log written to shibboleth.log")
             exit(99)
+
 
 if __name__ == '__main__':
     run()
