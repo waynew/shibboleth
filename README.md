@@ -3,9 +3,9 @@ approach to Getting Things Done.
 
 # History
 
-A few months into 2017 I read Jon Westenberg's post about how [he uses
-Evernote][3] to keep track of all the things that he needs to do. In the article
-he has some pretty golden advice:
+A few months into 2017 I read Joan Westenberg's (now defunct) post about how
+[she uses Evernote][3] to keep track of all the things that she needs to do. In
+the article she has some pretty golden advice:
 
 > Before I get into it though, I want to be clear. What I do might not work
 > for you. There is no golden key to productivity, and this is pretty
@@ -26,7 +26,7 @@ love: just stick the information into the filename itself. Then it doesn't
 matter what system you're using, the information is going to travel with the
 file.
 
-After I read Jon's article, I started trying to use the TagSpaces client. It
+After I read Joan's article, I started trying to use the TagSpaces client. It
 worked well enough, though it wasn't quite as keyboard-centric as I wanted.
 Using Dropbox to sync my files worked great (though they still don't have a
 client for the Raspberry Pi, grumble grumble).
@@ -43,9 +43,14 @@ Shibboleth is pretty simple. At the moment it only supports Linux-y systems
 
 All you have to do is install shibboleth:
 
-> python3.6 -m pip install shibboleth
+    python3 -m pip install shibboleth
 
-(Come join me in the glorious future that is Python3.6! Or, if you think it's
+Or even better, use [pipx][pipx]:
+
+    pipx install shibboleth
+
+
+(Come join me in the glorious future that is Python3 ~~.6~~! Or, if you think it's
 awesome and you live in some horrible reality that requires something ancient,
 did I mention that I'm totally accepting [pull requests][4]?)
 
@@ -53,7 +58,6 @@ Once it's installed, just start it up in whatever directory you want to stick
 your stuff. Maybe you do something like this:
 
 
-    $ cd ~/Dropbox/
     $ mkdir secret-weapon
     $ cd secret-weapon
     $ mkdir completed
@@ -63,23 +67,27 @@ your stuff. Maybe you do something like this:
     Your editor is currently vim. If you don't like that, you
     should change or set your EDITOR environment variable.
 
-    ⇀shibboleth:/home/wayne/Dropbox/secret-weapon
-    > new
+    ⇀shibboleth:/home/wayne/secret-weapon
+    >new
     Title: Try out shibboleth
 
 That will launch your editor - whatever your `EDITOR` environment variable is
 set to. Or `vim`, if nothing is set. `:q` is how you get out of Vim, if
-that's not your thing.
+that's not your thing. I added the text 
+
+> Trying out shibboleth, how does it work for me?
 
 Save and quit and you should come back to shibboleth:
 
-    ⇀shibboleth:/tmp/fnord/Try-out-shibboleth[20170406~011315].md
+    ⇀shibboleth:/tmp/fnord/Try-out-shibboleth[20170406~011315 1-now].md
     >show
     ********************************************************************************
+    Title: Try out shibboleth
+
     Trying out shibboleth, how does it work for me?
 
     ********************************************************************************
-    ⇀shibboleth:/tmp/fnord/Try-out-shibboleth[20170406~011315].md
+    ⇀shibboleth:/tmp/fnord/Try-out-shibboleth[20170406~011315 1-now].md
     >
 
 It will automatically select the new file. You may notice that it changed the
@@ -87,18 +95,23 @@ spaces for `-`. That's because readline is confusing and hard and doesn't
 like autocompleteing spaces. But if you can make it do the right thing, did I
 mention I'm accepting [pull requests][4]?
 
-So you can change the priority of your selected file/task with `priority`, or
-the shortcut `p`.
+You'll notice that the default priority is `1-now`. That's because I dropped a
+few tasks through the crack. No longer! Since I'm typically working through my
+"now" tasks, worst case it'll get stuck for a day or two before I move it to
+the correct priority.
 
-    >p 1
-    ⇀shibboleth:/tmp/fnord/Try-out-shibboleth[20170406~011315 1-now].md
+Of course, you can change the priority of your selected file/task with
+`priority`, or the shortcut `p`.
+
+    >p 6
+    ⇀shibboleth:/tmp/fnord/Try-out-shibboleth[20170406~011315 6-waiting].md
     >
 
 You can `deselect` to drop that, or `select` a different file. Or create
 another `new` one:
 
     >new something completely different
-    ⇀shibboleth:/tmp/fnord/something-completely-different[20170406~013345].md
+    ⇀shibboleth:/tmp/fnord/something-completely-different[20170406~013345 1-now].md
     >show
     ********************************************************************************
     A man with three legs!
@@ -106,7 +119,7 @@ another `new` one:
     > 'e ran off!
 
     ********************************************************************************
-    ⇀shibboleth:/tmp/fnord/something-completely-different[20170406~013345].md
+    ⇀shibboleth:/tmp/fnord/something-completely-different[20170406~013345 1-now].md
     p 4
     ⇀shibboleth:/tmp/fnord/something-completely-different[20170406~013345 4-later].md
     >
@@ -114,13 +127,29 @@ another `new` one:
 You can use `ls` to list all the files in the directory, `cd` to change
 directory. Or if you just want to see what you're supposed to be doing now:
 
-    > now
+    >now
     trying-out-shibboleth[20170406~013326 1-now].md
     ⇀shibboleth:/tmp/fnord/trying-out-shibboleth[20170406~013326 1-now].md
     >later
     something-completely-different[20170406~013345 4-later].md
     ⇀shibboleth:/tmp/fnord/trying-out-shibboleth[20170406~013326 1-now].md
     >
+
+Or if you want a high-level view, use `report`:
+
+    >report
+    1-now (1/2)
+            Trying-out-shibboleth[20220102~210020 1-now].md
+    2-next (0/2)
+    3-soon (0/2)
+    4-later (1/2)
+            something-completely-different[20220102~210043 4-later].md
+    5-someday (0/2)
+    6-waiting (0/2)
+    done (0/2)
+    None (0/2)
+
+You can use the `work` command to process either a priority or any other label. 
 
 Once you're done with a thing, you can `compelete` it, or be `done` with
 it:
@@ -129,10 +158,12 @@ it:
     ⇀shibboleth:/tmp/fnord
     >cd completed
     ⇀shibboleth:/tmp/fnord/completed
-    >later
-    something-completely-different[20170406~013345 4-later].md
+    >ls
+    something-completely-different[20170406~013345 done].md
 
-That's really about all there is to it. The way I use this is
+
+That's really about all there is to it. The way I use Shibboleth for my
+day-to-day:
 
 - start up shibboleth
 - check my `waiting` list to see if there's anything I need to move out of
@@ -154,13 +185,19 @@ I'm happy to work with you to get your [pull request][4] in. Or if I've got
 some time or I think it's a killer feature, I'm sure I'll add it to my own
 list. Using shibboleth, of course :)
 
+
+<a id="philosophy">
+
 Philosophy
 ----------
 
-I would prefer to keep this as 3rd-party-dependency-free as possible. I'm not
-opposed to adding some kind of plugin architecture, but I *really* want
-shibboleth to stay one single file. That way you can just stick it in a
-directory and you're good to go.
+I would prefer to keep this as 3rd-party-dependency-free as possible. ~~I'm not
+opposed to adding some kind of plugin architecture, but~~ (Plugins were added!)
+I *really* want shibboleth to stay one single file. That way you can just stick
+it in a directory and you're good to go.
+
+
+<a id="plugins">
 
 Plugins
 -------
@@ -222,6 +259,8 @@ CHANGELOG
 
 - Default priority is now `now` - this helps with tasks falling through the
   cracks.
+- `did` now inserts timestamps with a header instead of relying on the
+  blank-space-at-the-end-of-a-line for CommonMark rendering.
 
 ### Fixed
 
@@ -283,3 +322,4 @@ CHANGELOG
 [2]: http://www.thesecretweapon.org/the-secret-weapon-manifesto/manifesto-part-1-the-issue "The Secret Weapon Manifesto"
 [3]: https://medium.com/hi-my-name-is-jon/how-i-use-evernote-to-pitch-at-the-top-of-my-game-2c5966ef720b
 [4]: https://github.com/waynew/shibboleth#fork-destination-box
+[pipx]: https://pypa.github.io/pipx/
