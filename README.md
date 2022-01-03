@@ -79,7 +79,7 @@ that's not your thing. I added the text
 
 Save and quit and you should come back to shibboleth:
 
-    ⇀shibboleth:/tmp/fnord/Try-out-shibboleth[20170406~011315 1-now].md
+    ⇀shibboleth:/tmp/fnord/Try-out-shibboleth[20170406~011315 inbox].md
     >show
     ********************************************************************************
     Title: Try out shibboleth
@@ -87,7 +87,7 @@ Save and quit and you should come back to shibboleth:
     Trying out shibboleth, how does it work for me?
 
     ********************************************************************************
-    ⇀shibboleth:/tmp/fnord/Try-out-shibboleth[20170406~011315 1-now].md
+    ⇀shibboleth:/tmp/fnord/Try-out-shibboleth[20170406~011315 inbox].md
     >
 
 It will automatically select the new file. You may notice that it changed the
@@ -95,10 +95,8 @@ spaces for `-`. That's because readline is confusing and hard and doesn't
 like autocompleteing spaces. But if you can make it do the right thing, did I
 mention I'm accepting [pull requests][4]?
 
-You'll notice that the default priority is `1-now`. That's because I dropped a
-few tasks through the crack. No longer! Since I'm typically working through my
-"now" tasks, worst case it'll get stuck for a day or two before I move it to
-the correct priority.
+Recently (in January 2022) I was reminded of the "inbox" functionality, so I
+added that as the default "priority" that will show up in the report.
 
 Of course, you can change the priority of your selected file/task with
 `priority`, or the shortcut `p`.
@@ -111,7 +109,7 @@ You can `deselect` to drop that, or `select` a different file. Or create
 another `new` one:
 
     >new something completely different
-    ⇀shibboleth:/tmp/fnord/something-completely-different[20170406~013345 1-now].md
+    ⇀shibboleth:/tmp/fnord/something-completely-different[20170406~013345 inbox].md
     >show
     ********************************************************************************
     A man with three legs!
@@ -119,7 +117,7 @@ another `new` one:
     > 'e ran off!
 
     ********************************************************************************
-    ⇀shibboleth:/tmp/fnord/something-completely-different[20170406~013345 1-now].md
+    ⇀shibboleth:/tmp/fnord/something-completely-different[20170406~013345 inbox].md
     p 4
     ⇀shibboleth:/tmp/fnord/something-completely-different[20170406~013345 4-later].md
     >
@@ -138,6 +136,7 @@ directory. Or if you just want to see what you're supposed to be doing now:
 Or if you want a high-level view, use `report`:
 
     >report
+    inbox
     1-now (1/2)
             Trying-out-shibboleth[20220102~210020 1-now].md
     2-next (0/2)
@@ -250,6 +249,21 @@ TODOs
 
 CHANGELOG
 ---------
+
+## [0.8.0] - [2022-01-03]
+
+
+### Added
+
+- "inbox" as a priority.
+
+### Changed
+
+- "inbox" as the default priority.
+
+### Fixed
+
+- Restored `1-now` as the default work priority.
 
 ## [0.7.1] - [2022-01-02]
 

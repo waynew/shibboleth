@@ -19,9 +19,10 @@ from textwrap import dedent
 
 logger = logging.getLogger(__name__)
 
-__version__ = '0.7.1'
+__version__ = '0.8.0'
 
 DEFAULT_COLORS = {
+    'inbox': 34,
     '1-now': 31,  # red
     '2-next': 34,  # blue
     '3-soon': 92,  # light green
@@ -162,7 +163,9 @@ class Task:
         self.tags.listeners.append(self._on_tag_update)
         self._old_fname = Path(self.filename).expanduser().resolve()
 
-        if '1-now' in self.tags:
+        if 'inbox' in self.tags:
+            self._priority = 'inbox'
+        elif '1-now' in self.tags:
             self._priority = '1-now'
         elif '2-next' in self.tags:
             self._priority = '2-next'
@@ -505,7 +508,7 @@ class Shibboleth(cmd.Cmd):
         present. For instance, 'work 6-waiting email security' would work all
         the tasks that have 6-waiting, email, and security.
         '''
-        tags = set(PRIORITIES.get(tag or '1', tag) for tag in line.split())
+        tags = set(PRIORITIES.get(tag or '1', tag) for tag in line.split()) or {'1-now'}
         all_tasks = (Task(name) for name in os.listdir(os.path.curdir))
         tasks_to_work = [task for task in all_tasks if tags.issubset(set(task.tags))]
         if not tasks_to_work:
@@ -623,6 +626,7 @@ class Shibboleth(cmd.Cmd):
         files = [file for file in Path(line).iterdir() if file.is_file()]
         by_priority = {
             None: [],
+            'inbox': [],
             'done': [],
             '1-now': [],
             '2-next': [],
@@ -638,7 +642,7 @@ class Shibboleth(cmd.Cmd):
             else:
                 by_priority[task.priority].append(task)
 
-        for priority in list(PRIORITIES.values()) + ['done', None]:
+        for priority in ['inbox'] + list(PRIORITIES.values()) + ['done', None]:
             these_ones = by_priority[priority]
             print(priority, f'({len(these_ones)}/{len(files)})')
             for task in these_ones:
@@ -715,7 +719,7 @@ class Shibboleth(cmd.Cmd):
         self.selected = None
         self.do_edit(filename, flags="+'normal Go'")
         self.do_select(filename)
-        self.do_priority('1')
+        self.selected.tags.append('inbox')
 
     def do_did(self, line):
         '''
