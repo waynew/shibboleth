@@ -222,6 +222,7 @@ CHANGELOG
 ### Fixed
 
 - Mis-provided `log` command no longer crashes, improved logging.
+- No longer pass vim flags to all editors.
 
 ---
 

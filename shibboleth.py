@@ -44,6 +44,8 @@ NO_TAG_PATTERN = re.compile(r'(?P<title>[^.]*)(?:\.(?P<ext>.*))?')
 def edit(editor, flags, filename):
     if editor.lower() in ('vi', 'vim'):
         flags = "-n " + flags
+    else:
+        flags = ''
     os.system(f'{editor} {flags} "{filename}"')
 
 
