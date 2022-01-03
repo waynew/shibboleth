@@ -57,7 +57,9 @@ def is_git_tracked():
     logger.debug('>>is_git_tracked')
     DEVNULL = subprocess.DEVNULL
     retcode = subprocess.call(
-        ['git', 'rev-parse'], stdout=DEVNULL, stderr=DEVNULL,
+        ['git', 'rev-parse'],
+        stdout=DEVNULL,
+        stderr=DEVNULL,
     )
     return retcode == 0
 
@@ -275,7 +277,7 @@ class Reviewer(cmd.Cmd):
         self._index = 0
 
     def next(self):
-        if self._index+1 < len(self.tasks[self._cur_priority]):
+        if self._index + 1 < len(self.tasks[self._cur_priority]):
             self._index += 1
         else:
             self._index = 0
@@ -300,7 +302,8 @@ Review ({self._index+1}/{len(self.tasks[self._cur_priority])}) {colorized} [?/1-
         '''
         Display help.
         '''
-        print('''
+        print(
+            '''
 Review Commands
 ===============
 ?   help
@@ -310,7 +313,8 @@ s   skip/do not modify task
 d   mark task as done
 n   next priority
 q   quit review
-''')
+'''
+        )
 
     def do_e(self, line):
         '''
@@ -394,7 +398,8 @@ class Shibboleth(cmd.Cmd):
 
         Your editor is currently {self.editor}. If you don't like that, you
         should change or set your EDITOR environment variable.
-        ''')
+        '''
+        )
 
     @property
     def prompt(self):
@@ -510,7 +515,6 @@ class Shibboleth(cmd.Cmd):
             worker.cmdloop()
             return worker.result
 
-
     def do_now(self, line):
         '''
         Show tasks with a priority of 1-now
@@ -584,7 +588,9 @@ class Shibboleth(cmd.Cmd):
         return complete_select
 
     def complete_work(self, text, line, begidx, endidx):
-        tag_names = set(itertools.chain(*[Task(name).tags for name in os.listdir(os.path.curdir)]))
+        tag_names = set(
+            itertools.chain(*[Task(name).tags for name in os.listdir(os.path.curdir)])
+        )
         return sorted(name for name in tag_names if name.startswith(text))
 
     def do_priority(self, line):
@@ -831,13 +837,15 @@ class Shibboleth(cmd.Cmd):
                     print(f"{i}. {url}")
                 done = False
                 while not done:
-                    choices = input(f'Select urls [1-{i}, empty launches all. Select many by spaces]: ').strip()
+                    choices = input(
+                        f'Select urls [1-{i}, empty launches all. Select many by spaces]: '
+                    ).strip()
                     if not choices:
                         choices = list(range(urlcount))
                         done = True
                     else:
                         try:
-                            choices = [int(c)-1 for c in choices.split()]
+                            choices = [int(c) - 1 for c in choices.split()]
                             done = True
                         except ValueError:
                             logger.exception('Non-number in choices')
@@ -867,9 +875,11 @@ class Worker(Shibboleth):
     def __init__(self, tasks_to_work):
         super().__init__()
         self.tasks = tasks_to_work
-        self.intro = dedent(f'''
+        self.intro = dedent(
+            f'''
         {len(tasks_to_work)} tasks to work.
-        ''')
+        '''
+        )
         self.index = -1
         self.do_next('')
         self.result = None
@@ -885,7 +895,9 @@ class Worker(Shibboleth):
         '''
 
         for i, task in enumerate(self.tasks):
-            arrow = '\N{RIGHTWARDS HARPOON WITH BARB UPWARDS} ' if i == self.index else ''
+            arrow = (
+                '\N{RIGHTWARDS HARPOON WITH BARB UPWARDS} ' if i == self.index else ''
+            )
             print(f"{arrow}{task.colorized_filename}")
 
     def do_next(self, line):
@@ -904,7 +916,7 @@ class Worker(Shibboleth):
         '''
         Go to the previous task to work.
         '''
-        self.index = max(self.index-1, 0)
+        self.index = max(self.index - 1, 0)
         self.selected = self.tasks[self.index]
 
     def do_done(self, line):
@@ -921,7 +933,6 @@ class Worker(Shibboleth):
         '''
         return True
 
-
     do_deselect = do_next
     do_skip = do_next
     do_p = do_priority
@@ -937,15 +948,15 @@ def run():
         try:
             shibby.cmdloop()
         except:
-            h = logging.FileHandler(
-                'shibboleth.log'
-            )
+            h = logging.FileHandler('shibboleth.log')
             h.setLevel(logging.DEBUG)
             logger.setLevel(logging.DEBUG)
             logger.addHandler(h)
             logger.exception("Unhandled exception")
             logger.critical("Unable to recover, shutting down")
-            print("Oh no! Shibboleth had a problem and had to close. Log written to shibboleth.log")
+            print(
+                "Oh no! Shibboleth had a problem and had to close. Log written to shibboleth.log"
+            )
             exit(99)
 
 
