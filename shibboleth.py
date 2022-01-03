@@ -1,8 +1,7 @@
 import cmd
-import webbrowser
-from collections import defaultdict
 import functools
 import glob
+import itertools
 import logging
 import os
 import pkg_resources
@@ -11,14 +10,16 @@ import readline
 import subprocess
 import sys
 import types
+import webbrowser
 
+from collections import defaultdict
 from datetime import datetime
-from textwrap import dedent
 from pathlib import Path
+from textwrap import dedent
 
 logger = logging.getLogger(__name__)
 
-__version__ = '0.6.0'
+__version__ = '0.7.0b'
 
 DEFAULT_COLORS = {
     '1-now': 31,  # red
@@ -491,18 +492,17 @@ class Shibboleth(cmd.Cmd):
 
     def do_work(self, line):
         '''
-        Work tasks of a given priority, default of 1-now.
+        Work tasks of a given priority or tag, default of 1-now. Also supports
+        multiple tags - if multiple tags are requested they all must be
+        present. For instance, 'work 6-waiting email security' would work all
+        the tasks that have 6-waiting, email, and security.
         '''
-        try:
-            priority = PRIORITIES[line or '1']
-        except KeyError:
-            if line in PRIORITIES.values():
-                priority = line
-            else:
-                print(f'Unknown priority {line!r}')
+        tags = set(PRIORITIES.get(tag or '1', tag) for tag in line.split())
+        all_tasks = (Task(name) for name in os.listdir(os.path.curdir))
+        tasks_to_work = [task for task in all_tasks if tags.issubset(set(task.tags))]
+        if not tasks_to_work:
+            print(f"No tasks for tag {tag!r}")
         else:
-            all_tasks = (Task(name) for name in os.listdir(os.path.curdir))
-            tasks_to_work = [task for task in all_tasks if priority in task.tags]
             worker = Worker(tasks_to_work)
             worker.cmdloop()
             return worker.result
@@ -579,6 +579,10 @@ class Shibboleth(cmd.Cmd):
     def complete_edit(self, text, line, begidx, endidx):
         logger.debug('>>complete_edit')
         return complete_select
+
+    def complete_work(self, text, line, begidx, endidx):
+        tag_names = set(itertools.chain(*[Task(name).tags for name in os.listdir(os.path.curdir)]))
+        return sorted(name for name in tag_names if name.startswith(text))
 
     def do_priority(self, line):
         '''
@@ -861,7 +865,7 @@ class Worker(Shibboleth):
         super().__init__()
         self.tasks = tasks_to_work
         self.intro = dedent(f'''
-        {len(tasks_to_work)} tasks in this priority.
+        {len(tasks_to_work)} tasks to work.
         ''')
         self.index = -1
         self.do_next('')

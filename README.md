@@ -263,6 +263,8 @@ CHANGELOG
 
 - `did` now inserts timestamps with a header instead of relying on the
   blank-space-at-the-end-of-a-line for CommonMark rendering.
+- `work` now supports arbitrary tag matching, with autocomplete. Allows for
+  working priority labels or other labels.
 
 ### Fixed
 
