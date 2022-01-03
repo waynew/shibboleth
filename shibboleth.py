@@ -78,6 +78,7 @@ def git_postcmd(comment='shibboleth++'):
 
 
 def load_plugins(plugin_dir='~/.shibboleth/plugins'):
+    logger.debug('>>load_plugins')
     plugins = {}
     plugin_dir = os.path.expanduser(plugin_dir)
     if not os.path.exists(plugin_dir):
@@ -768,21 +769,23 @@ class Shibboleth(cmd.Cmd):
         log off -> stop logging
         '''
         logger.debug('>>do_log')
-        if not line:
-            print('Usage: log [on|off]')
-            return
-        action, *rest = line.split(None, maxsplit=1)
+        action, _, level = line.partition(' ')
+        level = level.strip()
         if action == 'off':
             logger.info('Turning logging off')
             logger.handlers.clear()
         elif action == 'on':
-            level = getattr(logging, ''.join(rest).upper() or 'DEBUG')
+            level = getattr(logging, level.upper() or 'DEBUG')
             logger.handlers.clear()
             h = logging.FileHandler('shibboleth.log')
             h.setLevel(level)
             logger.setLevel(level)
             logger.addHandler(h)
             logger.info('Logging turned on, level - %r', level)
+        if logger.handlers:
+            print('Logging is ON - writing to shibboleth.log')
+        else:
+            print('Logging is OFF')
 
     def do_launch(self, line):
         """

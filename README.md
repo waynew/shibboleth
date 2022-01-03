@@ -216,6 +216,10 @@ CHANGELOG
 
 - [Automatic git tracking](#auto_git_tracking)
 
+### Fixed
+
+- Mis-provided `log` command no longer crashes, improved logging.
+
 ---
 
 ## [0.6.0] - [2021-06-17]
