@@ -186,6 +186,19 @@ If you wanted to make it drop straight into the editor you could add:
 At the end of the function.
 
 
+<a id="auto_git_tracking">
+
+Automatic Git Tracking
+----------------------
+
+When commands finish, any untracked/committed changes will be automatically
+added and committed. This means that when doing `did` or `done`, or tagging
+files will automatically be tracked.
+
+Currently git is the only VCS backend that's supported, but it should be pretty
+reasonable to extend the behavior to other backends, like mercurial or fossil.
+
+
 TODOs
 -----
 
@@ -198,6 +211,10 @@ CHANGELOG
 ---------
 
 ## [Unreleased]
+
+### Added
+
+- [Automatic git tracking](#auto_git_tracking)
 
 ---
 

@@ -8,6 +8,7 @@ import os
 import pkg_resources
 import re
 import readline
+import subprocess
 import sys
 import types
 
@@ -44,6 +45,36 @@ def edit(editor, flags, filename):
     if editor.lower() in ('vi', 'vim'):
         flags = "-n " + flags
     os.system(f'{editor} {flags} "{filename}"')
+
+
+def is_git_tracked():
+    '''
+    Determine if the current directory is tracked via git.
+    '''
+    logger.debug('>>is_git_tracked')
+    DEVNULL = subprocess.DEVNULL
+    retcode = subprocess.call(
+        ['git', 'rev-parse'], stdout=DEVNULL, stderr=DEVNULL,
+    )
+    return retcode == 0
+
+
+def git_postcmd(comment='shibboleth++'):
+    '''
+    Determine if any changes need to be committed after a command, and do so.
+    '''
+    logger.debug('>>git_postcmd')
+    DEVNULL = subprocess.DEVNULL
+    result = subprocess.run(['git', 'status', '--porcelain=v2'], capture_output=True)
+    if result.stdout.strip():
+        logger.debug('Staging git files')
+        result = subprocess.run(['git', 'add', '.'], capture_output=True)
+        if result.returncode:
+            logger.debug('Oops %r', result)
+        logger.debug('Committing git with message %r', comment)
+        result = subprocess.run(['git', 'commit', '-m', comment], capture_output=True)
+        if result.returncode:
+            print('ERROR from git: ', result.stderr)
 
 
 def load_plugins(plugin_dir='~/.shibboleth/plugins'):
@@ -344,6 +375,7 @@ class Shibboleth(cmd.Cmd):
                 types.MethodType(self.plugins[plugin].handle, self),
             )
         super().__init__()
+        self.is_git_tracked = is_git_tracked()
         self.selected = None
         readline.set_completion_display_matches_hook(self.display_completion)
         readline.set_completer_delims(readline.get_completer_delims().replace('-', ''))
@@ -393,11 +425,9 @@ class Shibboleth(cmd.Cmd):
                 print('^C caught - use `q` to quit')
 
     def postcmd(self, stop, line):
-        print(f'postcmd {stop=!r} {line=!r}')
         logger.debug('>>postcmd')
-        self.prompt = f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{os.getcwd()}\n>'
-        if self.selected:
-            self.prompt = f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{self.selected.colorized_filename}\n>'
+        if self.is_git_tracked:
+            git_postcmd('shibboleth ' + line.partition(' ')[0])
         return stop
 
     def default(self, line):
@@ -417,6 +447,7 @@ class Shibboleth(cmd.Cmd):
         logger.debug('>>do_cd')
         try:
             os.chdir(line)
+            self.is_git_tracked = is_git_tracked()
         except Exception as e:
             print(e)
 
