@@ -3,9 +3,9 @@ approach to Getting Things Done.
 
 # History
 
-A few months into 2017 I read Joan Westenberg's (now defunct) post about how
-[she uses Evernote][3] to keep track of all the things that she needs to do. In
-the article she has some pretty golden advice:
+A few months into 2017 I read Joan Westenberg's  post about how [she uses
+Evernote][3] to keep track of all the things that she needs to do. In the
+article she has some pretty golden advice:
 
 > Before I get into it though, I want to be clear. What I do might not work
 > for you. There is no golden key to productivity, and this is pretty
@@ -188,7 +188,7 @@ some time or I think it's a killer feature, I'm sure I'll add it to my own
 list. Using shibboleth, of course :)
 
 
-<a id="philosophy" />
+<a id="philosophy"></a>
 
 Philosophy
 ----------
@@ -199,7 +199,7 @@ I *really* want shibboleth to stay one single file. That way you can just stick
 it in a directory and you're good to go.
 
 
-<a id="plugins" />
+<a id="plugins"></a>
 
 Plugins
 -------
@@ -225,7 +225,7 @@ If you wanted to make it drop straight into the editor you could add:
 At the end of the function.
 
 
-<a id="auto_git_tracking" />
+<a id="auto_git_tracking"></a>
 
 Automatic Git Tracking
 ----------------------
@@ -246,12 +246,19 @@ TODOs
 - config. We want to be able to config shibboleth, right? Different colors and
   what-not.
 
-<a id="changelog" />
+<a id="changelog"></a>
 
 CHANGELOG
 ---------
 
-## [Unreleased]
+## [0.7.1] - [2022-01-02]
+
+### Fixed
+
+- Fixed bug when your shibboleth directory was a subfolder in a repo that had
+  modified files in a different directory in the repo.
+
+## [0.7.0] - [2022-01-02]
 
 ### Added
 
@@ -326,6 +333,6 @@ CHANGELOG
 
 [1]: https://www.tagspaces.org/ "TagSpaces"
 [2]: http://www.thesecretweapon.org/the-secret-weapon-manifesto/manifesto-part-1-the-issue "The Secret Weapon Manifesto"
-[3]: https://medium.com/hi-my-name-is-jon/how-i-use-evernote-to-pitch-at-the-top-of-my-game-2c5966ef720b
+[3]: https://web.archive.org/web/20190225071845/https://medium.com/hi-my-name-is/how-i-use-evernote-to-pitch-at-the-top-of-my-game-2c5966ef720b
 [4]: https://github.com/waynew/shibboleth#fork-destination-box
 [pipx]: https://pypa.github.io/pipx/
