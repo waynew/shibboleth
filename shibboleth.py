@@ -68,12 +68,15 @@ def git_postcmd(comment='shibboleth++'):
     '''
     logger.debug('>>git_postcmd')
     DEVNULL = subprocess.DEVNULL
-    result = subprocess.run(['git', 'status', '--porcelain=v2'], capture_output=True)
+    result = subprocess.run(
+        ['git', 'status', '--porcelain=v2', '--', '.'], capture_output=True
+    )
     if result.stdout.strip():
         logger.debug('Staging git files')
         result = subprocess.run(['git', 'add', '.'], capture_output=True)
         if result.returncode:
             logger.debug('Oops %r', result)
+
         logger.debug('Committing git with message %r', comment)
         result = subprocess.run(['git', 'commit', '-m', comment], capture_output=True)
         if result.returncode:
