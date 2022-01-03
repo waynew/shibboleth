@@ -214,7 +214,8 @@ CHANGELOG
 
 ### Added
 
-- [Automatic git tracking](#auto_git_tracking)
+- [Automatic git tracking](#auto_git_tracking).
+- `clear` priority to... well, clear the priority!
 
 ### Fixed
 

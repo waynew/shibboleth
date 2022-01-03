@@ -589,7 +589,10 @@ class Shibboleth(cmd.Cmd):
             try:
                 self.selected.priority = PRIORITIES[line]
             except KeyError:
-                print(f'Unknown priority {line!r}')
+                if line == 'clear':
+                    self.selected.priority = None
+                else:
+                    print(f'Unknown priority {line!r}')
 
     def do_review(self, line):
         '''
