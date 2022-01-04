@@ -19,8 +19,9 @@ from textwrap import dedent
 
 logger = logging.getLogger(__name__)
 
-__version__ = '0.8.0'
+__version__ = '0.9.0rc0'
 
+HIDDEN_FILES = ('.last.shib', '.gitignore', 'shibboleth.log')
 DEFAULT_COLORS = {
     'inbox': 34,
     '1-now': 31,  # red
@@ -31,6 +32,7 @@ DEFAULT_COLORS = {
     '6-waiting': 95,  # light pink?
 }
 PRIORITIES = {
+    'inbox': 'inbox',
     '1': '1-now',
     '2': '2-next',
     '3': '3-soon',
@@ -49,6 +51,67 @@ def edit(editor, flags, filename):
     else:
         flags = ''
     os.system(f'{editor} {flags} "{filename}"')
+
+
+def launch(filename):
+    '''
+    Take a task file, parse the URLs from the headers, and launch the selected
+    urls in a webbrowser.
+    '''
+    last = None
+    headers = defaultdict(list)
+    with open(filename) as f:
+        for line in f:
+            if last == line == '\n':
+                break
+            else:
+                key, _, val = line.strip().partition(':')
+                if val:
+                    headers[key].append(val.strip())
+            last = line
+    urls = headers.get('URL')
+    if not urls:
+        print('No URL headers found')
+    else:
+        urlcount = len(urls)
+        choices = [0]
+        if urlcount > 1:
+            for i, url in enumerate(urls, start=1):
+                print(f"{i}. {url}")
+            done = False
+            while not done:
+                choices = input(
+                    f'Select urls [1-{i}, empty launches all. Select many by spaces]: '
+                ).strip()
+                if not choices:
+                    choices = list(range(urlcount))
+                    done = True
+                else:
+                    try:
+                        choices = [int(c) - 1 for c in choices.split()]
+                        done = True
+                    except ValueError:
+                        logger.exception('Non-number in choices')
+                        print('Non-number found')
+        for choice in choices:
+            webbrowser.open(urls[choice])
+
+
+def tasks_in_dir(path=''):
+    try:
+        files = [file for file in Path(path).iterdir() if file.is_file()]
+    except FileNotFoundError:
+        files = []
+    for file in files:
+        # ignore hidden files and vim swap files
+        if (
+            file.name in HIDDEN_FILES
+            or file.suffix.startswith('.sw')
+            and len(file.suffix) == 4
+        ):
+            continue
+        task = Task(file.name)
+        yield task
 
 
 def is_git_tracked():
@@ -211,6 +274,10 @@ class Task:
         self._priority = value
 
     @property
+    def path(self):
+        return self._old_fname
+
+    @property
     def filename(self):
         if self._missing_tags and not self.tags:
             tags = ''
@@ -246,10 +313,10 @@ class Task:
 
 
 def tasks_by_priority():
-    files = [file for file in Path().iterdir() if file.is_file()]
     priorities = tuple(PRIORITIES.values()) + ('done', None)
     by_priority = {
         None: [],
+        'inbox': [],
         'done': [],
         '1-now': [],
         '2-next': [],
@@ -258,8 +325,7 @@ def tasks_by_priority():
         '5-someday': [],
         '6-waiting': [],
     }
-    for file in files:
-        task = Task(file.name)
+    for task in tasks_in_dir():
         if 'done' in task.tags:
             by_priority['done'].append(task)
         else:
@@ -299,7 +365,7 @@ class Reviewer(cmd.Cmd):
         colorized = f'\x1b[{color}m{self._cur_priority}\x1b[0m'
         return f'''\
 {self._cur.colorized_filename}
-Review ({self._index+1}/{len(self.tasks[self._cur_priority])}) {colorized} [?/1-6/d/e/s/n/q]> '''
+Review ({self._index+1}/{len(self.tasks[self._cur_priority])}) {colorized} [?/1-6/d/e/v/l/s/n/q]> '''
 
     def do_help(self, line):
         '''
@@ -310,7 +376,9 @@ Review ({self._index+1}/{len(self.tasks[self._cur_priority])}) {colorized} [?/1-
 Review Commands
 ===============
 ?   help
-e   edit/view task
+e   edit task
+v   view/show task
+l   launch URLs
 1-6 set task priority
 s   skip/do not modify task
 d   mark task as done
@@ -324,6 +392,14 @@ q   quit review
         Edit the task.
         '''
         edit(self.editor, '', self._cur.filename)
+
+    def do_v(self, line):
+        print('*' * 80)
+        print(self._cur.path.read_text())
+        print('*' * 80)
+
+    def do_l(self, line):
+        launch(self._cur.path)
 
     def do_1(self, line):
         self._cur.priority = PRIORITIES['1']
@@ -380,7 +456,7 @@ q   quit review
 class Shibboleth(cmd.Cmd):
     plugins = load_plugins()
 
-    def __init__(self):
+    def __init__(self, check_for_last_task=True):
         # Register plugins before calling super's init
         for plugin in self.plugins:
             setattr(
@@ -391,6 +467,17 @@ class Shibboleth(cmd.Cmd):
         super().__init__()
         self.is_git_tracked = is_git_tracked()
         self.selected = None
+        if check_for_last_task:
+            try:
+                with open('.last.shib') as f:
+                    last = f.read().strip()
+                    if last:
+                        print(
+                            '\x1b[92mFound previously selected task, attempting to select\x1b[0m'
+                        )
+                        self.do_select(line=last)
+            except FileNotFoundError:
+                pass
         readline.set_completion_display_matches_hook(self.display_completion)
         readline.set_completer_delims(readline.get_completer_delims().replace('-', ''))
         self.editor = os.environ.get('EDITOR', 'vim')
@@ -445,6 +532,11 @@ class Shibboleth(cmd.Cmd):
             git_postcmd('shibboleth ' + line.partition(' ')[0])
         return stop
 
+    def postloop(self):
+        with open('.last.shib', 'w') as f:
+            if self.selected:
+                f.write(self.selected.filename)
+
     def default(self, line):
         plugname, _, newline = line.partition(' ')
         newline = newline.strip()
@@ -477,7 +569,6 @@ class Shibboleth(cmd.Cmd):
         specified priority.
         '''
         logger.debug('>>do_pls')
-        files = [Task(name) for name in os.listdir(os.path.curdir)]
         targets = {
             '1': '1-now',
             '2': '2-next',
@@ -493,13 +584,13 @@ class Shibboleth(cmd.Cmd):
                 print(f'Unknown priority {line!r}')
                 target = None
 
-        for file_ in files:
+        for task in tasks_in_dir():
             if not line or line == '1':
-                if '1-now' in file_.tags:
-                    print(file_.colorized_filename)
+                if '1-now' in task.tags:
+                    print(task.colorized_filename)
             elif target:
-                if target in file_.tags:
-                    print(file_.colorized_filename)
+                if target in task.tags:
+                    print(task.colorized_filename)
 
     def do_work(self, line):
         '''
@@ -509,14 +600,22 @@ class Shibboleth(cmd.Cmd):
         the tasks that have 6-waiting, email, and security.
         '''
         tags = set(PRIORITIES.get(tag or '1', tag) for tag in line.split()) or {'1-now'}
-        all_tasks = (Task(name) for name in os.listdir(os.path.curdir))
-        tasks_to_work = [task for task in all_tasks if tags.issubset(set(task.tags))]
+        tasks_to_work = [
+            task for task in tasks_in_dir() if tags.issubset(set(task.tags))
+        ]
         if not tasks_to_work:
             print(f"No tasks for tag {tag!r}")
         else:
             worker = Worker(tasks_to_work)
             worker.cmdloop()
             return worker.result
+
+    def complete_work(self, text, line, begidx, endidx):
+        tag = text.lstrip(
+            '-'
+        )  # Not quite relevant yet, but soon - for better tag operations
+        tag_names = set(itertools.chain(*[task.tags for task in tasks_in_dir()]))
+        return sorted(name for name in tag_names if name.startswith(text))
 
     def do_now(self, line):
         '''
@@ -586,16 +685,6 @@ class Shibboleth(cmd.Cmd):
         logger.debug('Possible paths: %r', paths)
         return paths
 
-    def complete_edit(self, text, line, begidx, endidx):
-        logger.debug('>>complete_edit')
-        return complete_select
-
-    def complete_work(self, text, line, begidx, endidx):
-        tag_names = set(
-            itertools.chain(*[Task(name).tags for name in os.listdir(os.path.curdir)])
-        )
-        return sorted(name for name in tag_names if name.startswith(text))
-
     def do_priority(self, line):
         '''
         Set the priority of the active task
@@ -618,12 +707,14 @@ class Shibboleth(cmd.Cmd):
         '''
         r = Reviewer(self.editor)
         r.cmdloop()
+        if self.selected and not self.selected.path.exists():
+            print("Selected task was modified and deselected")
+            self.do_deselect(line='')
 
     def do_report(self, line):
         '''
         Show a breakdown of tasks by priority.
         '''
-        files = [file for file in Path(line).iterdir() if file.is_file()]
         by_priority = {
             None: [],
             'inbox': [],
@@ -635,16 +726,17 @@ class Shibboleth(cmd.Cmd):
             '5-someday': [],
             '6-waiting': [],
         }
-        for file in files:
-            task = Task(file.name)
+        total_task_count = 0
+        for task in tasks_in_dir():
+            total_task_count += 1
             if 'done' in task.tags:
                 by_priority['done'].append(task)
             else:
                 by_priority[task.priority].append(task)
 
-        for priority in ['inbox'] + list(PRIORITIES.values()) + ['done', None]:
+        for priority in list(PRIORITIES.values()) + ['done', None]:
             these_ones = by_priority[priority]
-            print(priority, f'({len(these_ones)}/{len(files)})')
+            print(priority, f'({len(these_ones)}/{total_task_count})')
             for task in these_ones:
                 print(f'\t{task.colorized_filename}')
 
@@ -653,15 +745,8 @@ class Shibboleth(cmd.Cmd):
         Show tasks/files in the current (or provided) directory.
         '''
         logger.debug('>>do_ls')
-        line = os.path.expanduser(line)
-        if not line:
-            files = os.listdir(os.path.curdir)
-        elif os.path.isdir(line):
-            files = os.listdir(line)
-        else:
-            files = glob.glob(line)
-        for filename in files:
-            print(Task(filename).colorized_filename)
+        for task in tasks_in_dir(line.strip()):
+            print(task.colorized_filename)
 
     def do_show(self, line):
         '''
@@ -688,6 +773,10 @@ class Shibboleth(cmd.Cmd):
             filename = self.selected.filename if self.selected else line
 
         edit(self.editor, flags, filename)
+
+    def complete_edit(self, text, line, begidx, endidx):
+        logger.debug('>>complete_edit')
+        return complete_select
 
     def do_complete(self, line):
         '''
@@ -719,7 +808,7 @@ class Shibboleth(cmd.Cmd):
         self.selected = None
         self.do_edit(filename, flags="+'normal Go'")
         self.do_select(filename)
-        self.selected.tags.append('inbox')
+        self.do_priority('inbox')
 
     def do_did(self, line):
         '''
@@ -748,6 +837,9 @@ class Shibboleth(cmd.Cmd):
             tags = line.split()
         self.selected.tags.extend(tags)
 
+    def complete_tag(self, text, line, begidx, endidx):
+        return self.complete_work(text, line, begidx, endidx)
+
     def do_untag(self, line):
         '''
         Remove the space-delimited tag(s) from the current task.
@@ -762,6 +854,9 @@ class Shibboleth(cmd.Cmd):
                 self.selected.tags.remove(tag)
             except ValueError:
                 logger.debug(f'Tag {tag} not in {self.selected.tags}')
+
+    def complete_untag(self, text, line, begidx, endidx):
+        return self.complete_work(text, line, begidx, endidx)
 
     def do_exit(self, line):
         '''
@@ -819,43 +914,8 @@ class Shibboleth(cmd.Cmd):
         the web browser. If only one URL header is found, it will be launched
         automatically. Otherwise, you will be able to select any of them.
         """
-        last = None
-        headers = defaultdict(list)
         filename = self.selected.filename if self.selected else line
-        with open(filename) as f:
-            for line in f:
-                if last == line == '\n':
-                    break
-                else:
-                    key, _, val = line.strip().partition(':')
-                    if val:
-                        headers[key].append(val)
-        urls = headers.get('URL')
-        if not urls:
-            print('No URL headers found')
-        else:
-            urlcount = len(urls)
-            choices = [0]
-            if urlcount > 1:
-                for i, url in enumerate(urls, start=1):
-                    print(f"{i}. {url}")
-                done = False
-                while not done:
-                    choices = input(
-                        f'Select urls [1-{i}, empty launches all. Select many by spaces]: '
-                    ).strip()
-                    if not choices:
-                        choices = list(range(urlcount))
-                        done = True
-                    else:
-                        try:
-                            choices = [int(c) - 1 for c in choices.split()]
-                            done = True
-                        except ValueError:
-                            logger.exception('Non-number in choices')
-                            print('Non-number found')
-            for choice in choices:
-                webbrowser.open(urls[choice])
+        launch(filename)
 
     def do_version(self, line):
         '''
@@ -877,7 +937,7 @@ class Shibboleth(cmd.Cmd):
 
 class Worker(Shibboleth):
     def __init__(self, tasks_to_work):
-        super().__init__()
+        super().__init__(check_for_last_task=False)
         self.tasks = tasks_to_work
         self.intro = dedent(
             f'''

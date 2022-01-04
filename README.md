@@ -250,6 +250,17 @@ TODOs
 CHANGELOG
 ---------
 
+## [0.9.0] - [Unreleased]
+
+### Added
+
+- Added launch and view/show functionality to review.
+- Added tag autocomplete to tag/untag functions.
+
+### Fixed
+
+- If review changes a selected task, it'll be deselected.
+
 ## [0.8.0] - [2022-01-03]
 
 
