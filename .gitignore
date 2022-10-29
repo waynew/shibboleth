@@ -63,3 +63,4 @@ target/
 *.sw[a-p]
 temp/
 .venv/
+_test/
