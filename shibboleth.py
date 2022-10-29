@@ -570,6 +570,7 @@ class Shibboleth(cmd.Cmd):
         '''
         logger.debug('>>do_pls')
         targets = {
+            'inbox': 'inbox',
             '1': '1-now',
             '2': '2-next',
             '3': '3-soon',
