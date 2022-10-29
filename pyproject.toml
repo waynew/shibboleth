@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools"]
+
+[project]
+name = "shibboleth"
+description = "Command line tool for tracking tasks"
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["cli", "task", "tracking", "commandline", "productivity"]
+license = {text = "BSD 3-Clause License"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Office/Business",
+    "Topic :: Utilities",
+]
+#dependencies = [
+#    "requests",
+#    'importlib-metadata; python_version<"3.8"',
+#]
+dynamic = ["version"]
+
+[tool.setuptools.dynamic]
+version = {attr = "shibboleth.__version__"}
+
+#[project.optional-dependencies]
+#pdf = ["ReportLab>=1.2", "RXP"]
+#rest = ["docutils>=0.3", "pack ==1.1, ==1.3"]
+
