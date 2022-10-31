@@ -1,11 +1,201 @@
 import os
+import time
+import shutil
 import io
 import shibboleth
 import tempfile
 import unittest
 import unittest.mock as mock
+import datetime
 
 from pathlib import Path
+
+
+class TestShibboleth(unittest.TestCase):
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.pwd = os.getcwd()
+        os.chdir(self.tempdir)
+        self.shib = shibboleth.Shibboleth()
+
+    def tearDown(self):
+        os.chdir(self.pwd)
+        if hasattr(self._outcome, 'errors'):
+            result = self.defaultTestResult()
+            self._feedErrorsToResult(result, self._outcome.errors)
+        else:
+            result = self._outcome.result
+        ok = all(test != self for test, text in result.errors + result.failures)
+        if ok:
+            shutil.rmtree(self.tempdir)
+        else:
+            print(f'{chr(10)}Leaving temp dir {self.tempdir} around on test failures')
+
+    def test_shibboleth(self):
+        # On creation, no tasks should be there.
+        tasks = self.shib.ls()
+        self.assertEqual(tasks, [])
+
+        # After creating a new task, it should be list-able
+        expected_title = "this_is_my_first_task"
+        create_time = datetime.datetime(year=2010, month=8, day=14)
+        self.shib.new(title="this is my first task", create_time=create_time)
+        tasks = self.shib.ls()
+        self.assertEqual(tasks[0].title, expected_title)
+
+        # also it should automatically be in the inbox
+        tasks = self.shib.ls(priority='inbox')
+        self.assertEqual(tasks[0].title, expected_title)
+
+        # also it should be selected/current, and have the correct contents
+        self.assertEqual(self.shib.selected.read(), "Title: this is my first task\n\n")
+
+        # and it should have correct filename 
+        self.assertEqual(self.shib.selected.filename, 'this_is_my_first_task[20100814~000000 inbox].md')
+
+        # Creating a task with no provided create_time should create one with some time after now
+        before = datetime.datetime.now() - datetime.timedelta(seconds=2)
+        self.shib.new(title='delete me')
+        after = datetime.datetime.now() + datetime.timedelta(seconds=2)
+        self.assertLess(before, self.shib.selected.timestamp)
+        self.assertLess(self.shib.selected.timestamp, after)
+        
+        # rm should delete the task
+        self.shib.rm()
+        titles = [task.title for task in self.shib.ls()]
+        self.assertNotIn('delete_me', titles)
+
+        # Creating a bunch of tasks should all have correct filenames/titles/priorities
+
+        # Making a new task will put it in the inbox
+        self.shib.new(title="this is my now task", create_time=create_time)
+        tasks = self.shib.ls()
+        self.assertEqual([task.filename for task in tasks],
+            [
+                'this_is_my_now_task[20100814~000000 inbox].md',
+                'this_is_my_first_task[20100814~000000 inbox].md',
+            ]
+        )
+
+        # Now set to 1-now priority
+        self.shib.selected.priority = '1-now'
+        tasks = self.shib.ls()
+        self.assertEqual([task.filename for task in tasks],
+            [
+                'this_is_my_now_task[20100814~000000 1-now].md',
+                'this_is_my_first_task[20100814~000000 inbox].md',
+            ]
+        )
+
+        # Again, the new one should be in the inbox
+        self.shib.new(title="this is my next task", create_time=create_time)
+        tasks = self.shib.ls()
+        self.assertEqual([task.filename for task in tasks],
+            [
+                'this_is_my_next_task[20100814~000000 inbox].md',
+                'this_is_my_now_task[20100814~000000 1-now].md',
+                'this_is_my_first_task[20100814~000000 inbox].md',
+            ]
+        )
+
+        # until we change it
+        self.shib.selected.priority = '2-next'
+        tasks = self.shib.ls()
+        self.assertEqual([task.filename for task in tasks],
+            [
+                'this_is_my_next_task[20100814~000000 2-next].md',
+                'this_is_my_now_task[20100814~000000 1-now].md',
+                'this_is_my_first_task[20100814~000000 inbox].md',
+            ]
+        )
+
+        # That's probably good enough to just create the rest of them
+        for title in ("this is my soon task", "this is my later task", "this is my someday task", "this is my waiting task"):
+            self.shib.new(title=title, create_time=create_time)
+
+        tasks = self.shib.ls()
+        self.assertEqual([task.filename for task in tasks],
+            [
+                'this_is_my_next_task[20100814~000000 2-next].md',
+                'this_is_my_someday_task[20100814~000000 inbox].md',
+                'this_is_my_waiting_task[20100814~000000 inbox].md',
+                'this_is_my_soon_task[20100814~000000 inbox].md',
+                'this_is_my_now_task[20100814~000000 1-now].md',
+                'this_is_my_later_task[20100814~000000 inbox].md',
+                'this_is_my_first_task[20100814~000000 inbox].md',
+            ]
+        )
+
+        # Let's set their titles
+        self.shib.select('soon').priority = '3-soon'
+        self.shib.select('later').priority = '4-later'
+        self.shib.select('someday').priority = '5-someday'
+        self.shib.select('waiting').priority = '6-waiting'
+
+        tasks = self.shib.ls()
+        self.assertEqual([task.filename for task in tasks],
+            [
+                'this_is_my_next_task[20100814~000000 2-next].md',
+                'this_is_my_soon_task[20100814~000000 3-soon].md',
+                'this_is_my_waiting_task[20100814~000000 6-waiting].md',
+                'this_is_my_later_task[20100814~000000 4-later].md',
+                'this_is_my_someday_task[20100814~000000 5-someday].md',
+                'this_is_my_now_task[20100814~000000 1-now].md',
+                'this_is_my_first_task[20100814~000000 inbox].md',
+            ]
+        )
+
+        # ls with priority should only return those with that priority
+        self.assertEqual([task.filename for task in self.shib.ls(priority='inbox')],
+                ['this_is_my_first_task[20100814~000000 inbox].md'])
+
+        self.assertEqual([task.filename for task in self.shib.ls(priority='1-now')],
+                ['this_is_my_now_task[20100814~000000 1-now].md'])
+
+        self.assertEqual([task.filename for task in self.shib.ls(priority='2-next')],
+                ['this_is_my_next_task[20100814~000000 2-next].md'])
+
+        self.assertEqual([task.filename for task in self.shib.ls(priority='3-soon')],
+                ['this_is_my_soon_task[20100814~000000 3-soon].md'])
+
+        self.assertEqual([task.filename for task in self.shib.ls(priority='4-later')],
+                ['this_is_my_later_task[20100814~000000 4-later].md'])
+
+        self.assertEqual([task.filename for task in self.shib.ls(priority='5-someday')],
+                ['this_is_my_someday_task[20100814~000000 5-someday].md'])
+
+        self.assertEqual([task.filename for task in self.shib.ls(priority='6-waiting')],
+                ['this_is_my_waiting_task[20100814~000000 6-waiting].md'])
+
+        # if None or '' is passed to select, selected should be None
+        self.shib.select(None)
+        self.assertEqual(self.shib.selected, None)
+
+        self.shib.select('someday')
+        self.assertNotEqual(self.shib.selected, None)
+
+        self.shib.select('')
+        self.assertEqual(self.shib.selected, None)
+
+
+        # Tagging a task should add the tag but only once
+        self.shib.select('first')
+        self.shib.tag('boop')
+        self.shib.tag('boop')
+        self.assertIn('boop', self.shib.selected.tags)
+
+        # Untag should remove the tag if it's there but do nothing otherwise
+        self.shib.untag('boop')
+        self.assertNotIn('boop', self.shib.selected.tags)
+        self.shib.untag('boop')
+
+        # ls should ignore done
+        count = len(self.shib.ls())
+        fname = self.shib.selected.filename
+        self.shib.complete()
+        self.assertEqual(len(self.shib.ls()), count-1)
+        self.assertTrue(Path('completed', fname.replace('inbox', 'done')).exists())
+
 
 
 class TestShibbolethTask(unittest.TestCase):
@@ -107,7 +297,9 @@ class TestShibbolethTask(unittest.TestCase):
 
     def test_when_tag_is_appended_it_should_rename_the_file(self):
         old_filename = Path(self.tempdir.name) / f'something old[boring].txt'
-        expected_filename = Path(self.tempdir.name) / f'something old[boring and new].txt'
+        expected_filename = (
+            Path(self.tempdir.name) / f'something old[boring and new].txt'
+        )
         old_filename.touch()
         task = shibboleth.Task(old_filename.name)
 
@@ -118,7 +310,9 @@ class TestShibbolethTask(unittest.TestCase):
 
     def test_when_tags_are_extended_it_should_rename_the_file(self):
         old_filename = Path(self.tempdir.name) / f'something old[boring].txt'
-        expected_filename = Path(self.tempdir.name) / f'something old[boring and new].txt'
+        expected_filename = (
+            Path(self.tempdir.name) / f'something old[boring and new].txt'
+        )
         old_filename.touch()
         task = shibboleth.Task(old_filename.name)
 
@@ -146,10 +340,9 @@ class TestShibbolethTask(unittest.TestCase):
 
         self.assertTrue(expected_filename.exists(), str(os.listdir()))
 
-
     def test_when_no_priority_is_in_tag_it_should_be_None(self):
         filename = f'priority testing[No priority here].test'
-        
+
         task = shibboleth.Task(filename)
 
         self.assertTrue(task.priority is None, 'priority was not None!')
@@ -157,7 +350,7 @@ class TestShibbolethTask(unittest.TestCase):
     def test_when_priority_is_in_tag_it_should_be_set(self):
         for priority in shibboleth.PRIORITIES.values():
             filename = f'priority testing[{priority}].test'
-            
+
             task = shibboleth.Task(filename)
 
             with self.subTest():
@@ -221,7 +414,6 @@ class TestShibbolethTask(unittest.TestCase):
 
         self.assertEqual(task.read(), expected_text)
 
-
     ###############################################################
     ###############################################################
     ## TODO: These need their own test class? Or move to pytest? ##
@@ -231,7 +423,7 @@ class TestShibbolethTask(unittest.TestCase):
         expected_log = "Logging turned on, level - 'INFO'\nTurning logging off\n"
         expected_stdout = 'Logging is OFF\nLogging is ON - writing to shibboleth.log\nLogging is OFF\n'
         with mock.patch('sys.stdout', io.StringIO()) as fake_out:
-            shib = shibboleth.Shibboleth()
+            shib = shibboleth.ShibbolethLoop()
             shib.onecmd('log')
             shib.onecmd('log on info')
             shib.onecmd('log off')
@@ -244,4 +436,5 @@ class TestShibbolethTask(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main(TestShibbolethTask())
+    # unittest.main((TestShibbolethTask(), TestShibboleth()))
+    unittest.main()

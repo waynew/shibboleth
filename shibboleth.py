@@ -174,7 +174,7 @@ def load_plugins(plugin_dir='~/.shibboleth/plugins'):
 
 def register_plugin(name):
     def wrapper(func):
-        print(id(Shibboleth))
+        print(id(ShibbolethLoop))
 
         @functools.wraps(func)
         def f(*args, **kwargs):
@@ -195,7 +195,7 @@ class Tags(list):
     def append(self, item):
         if item not in self:
             super().append(item)
-        self._broadcast()
+            self._broadcast()
 
     def extend(self, items):
         super().extend(i for i in items if i not in self)
@@ -206,8 +206,9 @@ class Tags(list):
         self._broadcast()
 
     def remove(self, value):
-        super().remove(value)
-        self._broadcast()
+        if value in self:
+            super().remove(value)
+            self._broadcast()
 
 
 class Task:
@@ -249,6 +250,15 @@ class Task:
 
     def _on_tag_update(self):
         self._rename()
+
+    @property
+    def timestamp(self):
+        for tag in self.tags:
+            if tag.replace('~', '').isnumeric():
+                try:
+                    return datetime.strptime(tag, '%Y%m%d~%H%M%S')
+                except ValueError:
+                    pass
 
     @property
     def title(self):
@@ -310,6 +320,60 @@ class Task:
 
     def read(self):
         return self._old_fname.read_text()
+
+
+class Shibboleth:
+    @property
+    def selected(self):
+        return self._selected
+
+    def ls(self, *, priority=None):
+        if priority:
+            return [task for task in tasks_in_dir() if priority in task.tags]
+        else:
+            return list(tasks_in_dir())
+
+    def new(self, *, title, create_time=None):
+        create_time = create_time or datetime.now()
+        underscore_title = title.replace(" ", "_")
+        filename = f'{underscore_title}[{create_time:%Y%m%d~%H%M%S}].md'
+        Path(filename).write_text(f'Title: {title}\n\n')
+        self.select(underscore_title)
+        self.selected.priority = 'inbox'
+
+    def select(self, search):
+        self._selected = None
+        if search:
+            for task in self.ls():
+                if search in task.title:
+                    self._selected = task
+                    return task
+
+    def rm(self):
+        '''
+        Delete the currently selected task.
+        '''
+        self._selected.path.unlink()
+
+    def tag(self, tag):
+        '''
+        Add a tag to the selected task.
+        '''
+        self.selected.tags.append(tag)
+
+    def untag(self, tag):
+        '''
+        Remove a tag from the selected task.
+        '''
+        self.selected.tags.remove(tag)
+
+    def complete(self):
+        '''
+        Complete the currently selected task.
+        '''
+        self.selected.complete()
+        #self.select(None)
+
 
 
 def tasks_by_priority():
@@ -453,14 +517,14 @@ q   quit review
         return True
 
 
-class Shibboleth(cmd.Cmd):
+class ShibbolethLoop(cmd.Cmd):
     plugins = load_plugins()
 
     def __init__(self, check_for_last_task=True):
         # Register plugins before calling super's init
         for plugin in self.plugins:
             setattr(
-                Shibboleth,
+                ShibbolethLoop,
                 'do_' + plugin,
                 types.MethodType(self.plugins[plugin].handle, self),
             )
@@ -936,7 +1000,7 @@ class Shibboleth(cmd.Cmd):
     complete_e = complete_edit
 
 
-class Worker(Shibboleth):
+class Worker(ShibbolethLoop):
     def __init__(self, tasks_to_work):
         super().__init__(check_for_last_task=False)
         self.tasks = tasks_to_work
@@ -1006,7 +1070,7 @@ class Worker(Shibboleth):
 
 def run():
     # I'll never ever write a song about the shibby
-    shibby = Shibboleth()
+    shibby = ShibbolethLoop()
     if sys.argv[1:]:
         shibby.onecmd(' '.join(sys.argv[1:]))
     else:

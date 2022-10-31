@@ -256,6 +256,12 @@ CHANGELOG
 
 - `pls inbox` now works.
 
+### Changed
+
+- Internal refactor - if Shibboleth is used programatically then replace
+  Shibboleth with ShibbolethLoop. Should be completely transparent from a user
+  perspective.
+
 ## [0.9.0] - [2022-10-29]
 
 ### Added
