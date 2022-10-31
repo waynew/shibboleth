@@ -252,9 +252,16 @@ CHANGELOG
 
 ## [0.9.1] - [Unreleased]
 
+### Changed
+
+- `done` and `completed` no longer move `done` tasks to a different dir.
+
 ### Fixed
 
 - `pls inbox` now works.
+- `report <priority>` now will only list the tasks for that priority.
+- `work` no longer crashes when given a bad set of tags. Also more helpful
+  output.
 
 ## [0.9.0] - [2022-10-29]
 
