@@ -296,17 +296,17 @@ class Task:
         return filename
 
     def complete(self):
-        completed_dir = Path('completed').absolute()
-        completed_dir.mkdir(parents=True, exist_ok=True)
+        #completed_dir = Path('completed').absolute()
+        #completed_dir.mkdir(parents=True, exist_ok=True)
         self.priority = None
         self.tags.append('done')
-        new_path = completed_dir / Path(self.filename).name
-        Path(self.filename).rename(new_path)
+        #new_path = completed_dir / Path(self.filename).name
+        #Path(self.filename).rename(new_path)
         # TODO: Could we do a better job at renaming here? -W. Werner, 2019-10-15
         # There's the _rename function, but it seems like it's
         # a bit different than what we're doing here. I bet we
         # could properly unify this thing.
-        self._old_fname = new_path
+        #self._old_fname = new_path
 
     def read(self):
         return self._old_fname.read_text()
@@ -569,29 +569,16 @@ class Shibboleth(cmd.Cmd):
         specified priority.
         '''
         logger.debug('>>do_pls')
-        targets = {
-            'inbox': 'inbox',
-            '1': '1-now',
-            '2': '2-next',
-            '3': '3-soon',
-            '4': '4-later',
-            '5': '5-someday',
-            '6': '6-waiting',
-        }
-        if line:
-            try:
-                target = targets[line]
-            except KeyError:
-                print(f'Unknown priority {line!r}')
-                target = None
+        line = line.strip() or '1'
+        try:
+            target = PRIORITIES[line]
+        except KeyError:
+            print(f'Unknown priority {line!r}')
+            target = PRIORITIES['1']
 
         for task in tasks_in_dir():
-            if not line or line == '1':
-                if '1-now' in task.tags:
-                    print(task.colorized_filename)
-            elif target:
-                if target in task.tags:
-                    print(task.colorized_filename)
+            if target in task.tags:
+                print(task.colorized_filename)
 
     def do_work(self, line):
         '''
@@ -605,7 +592,7 @@ class Shibboleth(cmd.Cmd):
             task for task in tasks_in_dir() if tags.issubset(set(task.tags))
         ]
         if not tasks_to_work:
-            print(f"No tasks for tag {tag!r}")
+            print(f"No tasks for tag set {', '.join(sorted(tags))!r}")
         else:
             worker = Worker(tasks_to_work)
             worker.cmdloop()
@@ -735,11 +722,21 @@ class Shibboleth(cmd.Cmd):
             else:
                 by_priority[task.priority].append(task)
 
+        priorities = {'done': 'done'}
+        priorities.update(PRIORITIES)
+        target = None
+        if line:
+            try:
+                target = priorities[line]
+            except KeyError:
+                print(f'Unknown priority {line!r}')
+
         for priority in list(PRIORITIES.values()) + ['done', None]:
             these_ones = by_priority[priority]
-            print(priority, f'({len(these_ones)}/{total_task_count})')
-            for task in these_ones:
-                print(f'\t{task.colorized_filename}')
+            if not target or target == priority:
+                print(priority, f'({len(these_ones)}/{total_task_count})')
+                for task in these_ones:
+                    print(f'\t{task.colorized_filename}')
 
     def do_ls(self, line):
         '''
