@@ -201,15 +201,15 @@ class TestShibbolethTask(unittest.TestCase):
             with self.subTest():
                 self.assertEqual(task.colorized_filename, expected_filename)
 
-    def test_complete_should_remove_priority_and_tag_and_move_to_completed(self):
+    def test_complete_should_remove_priority_and_tag_and_set_done_tag(self):
         old_filename = Path('foo bar [here gone 1-now].quux')
         old_filename.touch()
-        expected_filename = Path('completed', 'foo bar [here gone done].quux')
+        expected_filename = Path('foo bar [here gone done].quux')
         task = shibboleth.Task(old_filename.name)
 
         task.complete()
 
-        self.assertTrue(expected_filename.exists(), str(os.listdir('completed')))
+        self.assertTrue(expected_filename.exists())
 
     def test_task_read_should_return_contents_of_the_file(self):
         expected_text = 'The quick brown fox\njumps\n\nover the\tlazy dogs'
