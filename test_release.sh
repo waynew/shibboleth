@@ -8,4 +8,4 @@ fi
 python -m build
 twine check dist/shibboleth-$(python shibboleth.py version)-py3-none-any.whl
 git tag -a $(python shibboleth.py version)
-twine upload --config-file $HOME/.pypirc -u __token__ -r shibboleth dist/shibboleth-$(python shibboleth.py version)-py3-none-any.whl --verbose
+twine upload --config-file $HOME/.pypirc -u __token__ -r test_shibboleth dist/shibboleth-$(python shibboleth.py version)-py3-none-any.whl --verbose
