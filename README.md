@@ -250,7 +250,7 @@ TODOs
 CHANGELOG
 ---------
 
-## [0.9.1] - [Unreleased]
+## [0.9.1] - [2023-10-13]
 
 ### Changed
 
