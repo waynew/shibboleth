@@ -4,7 +4,6 @@ import glob
 import itertools
 import logging
 import os
-import pkg_resources
 import re
 import readline
 import subprocess
@@ -19,7 +18,7 @@ from textwrap import dedent
 
 logger = logging.getLogger(__name__)
 
-__version__ = '0.9.1'
+__version__ = '25.3.0'
 
 HIDDEN_FILES = ('.last.shib', '.gitignore', 'shibboleth.log')
 DEFAULT_COLORS = {
