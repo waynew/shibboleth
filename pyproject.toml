@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61"]
 
 [project]
 name = "shibboleth"
@@ -7,7 +7,7 @@ description = "Command line tool for tracking tasks"
 readme = "README.md"
 requires-python = ">=3.7"
 keywords = ["cli", "task", "tracking", "commandline", "productivity"]
-license = "BSD-3-Clause"
+license = {text = "BSD-3-Clause"}
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
