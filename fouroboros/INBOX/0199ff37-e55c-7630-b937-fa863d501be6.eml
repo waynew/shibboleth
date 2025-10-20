@@ -1,0 +1,8 @@
+From: Wayne Werner <wayne@waynewerner.com>
+To: None
+X-Fouroboros-Type: issue
+Message-ID: 0199ff37-e55c-7630-b937-fa863d501be6@awesome-project
+Date: Mon, 20 Oct 2025 01:24:37 -0000
+Subject: Make it naturally work on Windows
+
+There are some colors and things that are hot garbage with the way that I'm currently doing things. It's pretty fine for now but... it would probably be good to make it work naturally on Win.

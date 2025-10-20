@@ -5,18 +5,17 @@ requires = ["setuptools>=61"]
 name = "shibboleth"
 description = "Command line tool for tracking tasks"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 keywords = ["cli", "task", "tracking", "commandline", "productivity"]
 license = {text = "BSD-3-Clause"}
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Office/Business",
     "Topic :: Utilities",
 ]
