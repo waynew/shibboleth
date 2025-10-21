@@ -10,6 +10,8 @@ import subprocess
 import sys
 import types
 import webbrowser
+import email.parser
+import email.policy
 
 from collections import defaultdict
 from datetime import datetime
@@ -18,7 +20,7 @@ from textwrap import dedent
 
 logger = logging.getLogger(__name__)
 
-__version__ = '25.3.0b1'
+__wersion__ = '25.10.0b1'
 
 HIDDEN_FILES = ('.last.shib', '.gitignore', 'shibboleth.log')
 DEFAULT_COLORS = {
@@ -42,6 +44,8 @@ PRIORITIES = {
 
 TAG_PATTERN = re.compile(r'(?P<title>.*?)\[(?P<tags>.*?)\](\.(?P<ext>.*))?')
 NO_TAG_PATTERN = re.compile(r'(?P<title>[^.]*)(?:\.(?P<ext>.*))?')
+HEADER_PARSER = email.parser.Parser(policy=email.policy.default)
+WORKDIR = Path().resolve()
 
 
 def edit(editor, flags, filename):
@@ -96,7 +100,8 @@ def launch(filename):
             webbrowser.open(urls[choice])
 
 
-def tasks_in_dir(path=''):
+def tasks_in_dir(path=None):
+    path = path or WORKDIR
     try:
         files = [file for file in Path(path).iterdir() if file.is_file()]
     except FileNotFoundError:
@@ -109,7 +114,7 @@ def tasks_in_dir(path=''):
             and len(file.suffix) == 4
         ):
             continue
-        task = Task(file.name)
+        task = Task(file)
         yield task
 
 
@@ -210,12 +215,13 @@ class Tags(list):
 
 
 class Task:
-    def __init__(self, filename):
-        m = re.search(TAG_PATTERN, filename)
+    def __init__(self, path):
+        path = WORKDIR / path
+        m = re.search(TAG_PATTERN, path.name)
         if m is None:
             self._missing_tags = True
             self.tags = Tags()
-            m = re.search(NO_TAG_PATTERN, filename)
+            m = re.search(NO_TAG_PATTERN, path.name)
         else:
             self._missing_tags = False
             self.tags = Tags(m.group('tags').split())
@@ -223,7 +229,8 @@ class Task:
         self.ext = m.group('ext')
 
         self.tags.listeners.append(self._on_tag_update)
-        self._old_fname = Path(self.filename).expanduser().resolve()
+        self._old_fname = path
+        print(self._old_fname)
 
         if 'inbox' in self.tags:
             self._priority = 'inbox'
@@ -242,9 +249,21 @@ class Task:
         else:
             self._priority = None
 
+    @classmethod
+    def create_from_content(self, content):
+        parsed = HEADER_PARSER.parsestr(content)
+        filename = parsed['Title']
+
+        task = Task(filename)
+        task.path.touch()
+        task.priority = 'inbox'
+        task.path.write_text(parsed.as_string())
+        return task
+
     def _rename(self):
-        self._old_fname.rename(self.filename)
-        self._old_fname = Path(self.filename).expanduser().resolve()
+        new_filename = self._old_fname.parent / self.filename
+        self._old_fname.rename(new_filename)
+        self._old_fname = new_filename
 
     def _on_tag_update(self):
         self._rename()
@@ -252,6 +271,27 @@ class Task:
     @property
     def title(self):
         return self._title
+
+    @property
+    def content(self):
+        with self.path.open() as f:
+            parsed = HEADER_PARSER.parse(f)
+        part = parsed.get_body(preferencelist=('plain', 'html', 'related'))
+        return part.get_content()
+
+
+    @property
+    def fancy_title(self):
+        with self.path.open() as f:
+            prev_line = line = ''
+            for line in f:
+                if prev_line == line == '\n':
+                    break
+                elif line.startswith('Title: '):
+                    return line.partition(' ')[-1]
+                prev_line = line
+        return self._old_fname.name
+
 
     @title.setter
     def title(self, new_title):

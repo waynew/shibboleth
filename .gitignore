@@ -65,3 +65,4 @@ temp/
 .venv/
 _test/
 .last.shib
+.python-version

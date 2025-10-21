@@ -1,13 +1,12 @@
+[build-system]
+requires = ["setuptools>=61"]
+
 [project]
 name = "shibboleth"
 description = "Command line tool for tracking tasks"
 readme = "README.md"
-authors = [
-    { name = "Wayne Werner", email = "wayne@waynewerner.com" }
-]
 requires-python = ">=3.10"
 keywords = ["cli", "task", "tracking", "commandline", "productivity"]
-dependencies = []
 license = {text = "AGPL-3.0-or-later"}
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -22,18 +21,8 @@ classifiers = [
 ]
 dynamic = ["version"]
 
-[tool.hatch.version]
-path = "src/shibboleth/__init__.py"
+[tool.setuptools.dynamic]
+version = {attr = "shibboleth.__version__"}
 
 [project.scripts]
-shibboleth = "shibboleth:main"
-shibboleth-fancy = "shibboleth.fancy:run"
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[dependency-groups]
-fancy = [
-    "textual>=6.3.0",
-]
+shibboleth = "shibboleth:run"

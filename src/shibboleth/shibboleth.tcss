@@ -1,0 +1,60 @@
+Column:focus-within {
+    border: double green;
+}
+
+Column {
+    align-horizontal: center;
+    max-width: 26;
+    border: solid gray;
+
+    Static {
+        background: blue;
+        text-align: center;
+    }
+
+    Card {
+        text-align: left;
+        background: #3f3f3f;
+        margin: 1;
+        border: solid;
+    }
+
+    Card:focus {
+        border: double;
+        background: #5f5f5f;
+    }
+}
+
+CardBack {
+    align: center middle;
+
+    Static {
+    }
+
+    TextArea {
+        min-height: 10;
+    }
+    
+    VerticalScroll {
+        width: 80%;
+        background: #272727;
+        max-height: 80%;
+        min-height: 80%;
+    }
+
+    Horizontal {
+        align-horizontal: right;
+        width: 80%;
+        height: auto;
+    }
+
+    Horizontal #close {
+        width: 2;
+    }
+}
+
+
+Shibboleth Horizontal {
+    height: 3;
+    align-horizontal: right;
+}
