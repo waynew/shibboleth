@@ -1,0 +1,18 @@
+From: Wayne Werner <wayne@waynewerner.com>
+To: None
+X-Fouroboros-Type: issue
+Message-ID: 019a0899-c53d-728f-b19f-4c518b73633f@awesome-project
+Date: Tue, 21 Oct 2025 21:08:06 -0000
+Subject: Make shifty bits work better
+
+right now < and > will move the cards to different columns but then we lose focus. We should still be able to track which card needs to have focus.
+
+We can also improve the event handler to where moving the card only has to update the two columns, instead of all of them, with the `mutate_reactive` bit.
+
+
+It would probably look something like:
+
+```
+src_col.mutate_reactive(Column.tasks)
+dst_col.mutate_reactive(Column.tasks)
+```
