@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from textwrap import dedent
 from textual import log, events,getters
@@ -246,11 +247,15 @@ class Shibboleth(App):
 
 
 def app():
-    shibboleth.WORKDIR = shibboleth.Path('/home/wayne/shibboleth')
+    shibboleth.WORKDIR = shibboleth.Path(os.environ.get("SHIBBOLETH_DIR", '.')).resolve()
     app = Shibboleth()
     #app.run()
     return app
 
 
-if __name__ == "__main":
+def run():
+    return app().run()
+
+    
+if __name__ == "__main__":
     app = Shibboleth()
