@@ -29,6 +29,11 @@ path = "src/shibboleth/__init__.py"
 shibboleth = "shibboleth:main"
 shibboleth-fancy = "shibboleth.fancy:run"
 
+[project.optional-dependencies]
+fancy = [
+    "textual>=6.3.0",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
