@@ -330,7 +330,8 @@ class Task:
         filename = self.filename
         for tag in self.tags or []:
             color = DEFAULT_COLORS.get(tag, '32')
-            colorized = f'\x1b[{color}m{tag}\x1b[0m'
+            #colorized = f'\x1b[{color}m{tag}\x1b[0m'
+            colorized = f'{tag}'
             filename = filename.replace(tag, colorized)
         return filename
 
@@ -401,7 +402,8 @@ class Reviewer(cmd.Cmd):
     @property
     def prompt(self):
         color = DEFAULT_COLORS.get(self._cur_priority, '32')
-        colorized = f'\x1b[{color}m{self._cur_priority}\x1b[0m'
+        #colorized = f'\x1b[{color}m{self._cur_priority}\x1b[0m'
+        colorized = f'{self._cur_priority}'
         return f'''\
 {self._cur.colorized_filename}
 Review ({self._index+1}/{len(self.tasks[self._cur_priority])}) {colorized} [?/1-6/d/e/v/l/s/n/q]> '''
@@ -534,8 +536,10 @@ class Shibboleth(cmd.Cmd):
     @property
     def prompt(self):
         if self.selected:
-            return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{self.selected.colorized_filename}\n>'
-        return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{os.getcwd()}\n>'
+            return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}shibboleth:{self.selected.colorized_filename}\n>'
+            #return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{self.selected.colorized_filename}\n>'
+        return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}shibboleth:{os.getcwd()}\n>'
+        #return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{os.getcwd()}\n>'
 
     def display_completion(self, substitution, matches, longest_match_length):
         logger.debug('>>display_completion')
@@ -989,7 +993,8 @@ class Worker(Shibboleth):
 
     @property
     def prompt(self):
-        return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{self.selected.colorized_filename}\n{self.index+1}/{len(self.tasks)}>'
+        return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}shibboleth:{self.selected.colorized_filename}\n{self.index+1}/{len(self.tasks)}>'
+        #return f'\N{RIGHTWARDS HARPOON WITH BARB UPWARDS}\x1b[34mshibboleth\x1b[0m:{self.selected.colorized_filename}\n{self.index+1}/{len(self.tasks)}>'
 
     def do_ls(self, line):
         '''
