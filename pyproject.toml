@@ -26,7 +26,7 @@ dynamic = ["version"]
 path = "src/shibboleth/__init__.py"
 
 [project.scripts]
-shibboleth = "shibboleth:main"
+shibboleth = "shibboleth:run"
 shibboleth-fancy = "shibboleth.fancy:run"
 
 [project.optional-dependencies]
