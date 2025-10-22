@@ -20,7 +20,7 @@ from textwrap import dedent
 
 logger = logging.getLogger(__name__)
 
-__version__ = '25.10.0b1'
+__version__ = '25.10.0b2'
 
 HIDDEN_FILES = ('.last.shib', '.gitignore', 'shibboleth.log')
 DEFAULT_COLORS = {
