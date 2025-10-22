@@ -512,7 +512,8 @@ class Shibboleth(cmd.Cmd):
                     last = f.read().strip()
                     if last:
                         print(
-                            '\x1b[92mFound previously selected task, attempting to select\x1b[0m'
+                            #'\x1b[92mFound previously selected task, attempting to select\x1b[0m'
+                            'Found previously selected task, attempting to select'
                         )
                         self.do_select(line=last)
             except FileNotFoundError:
