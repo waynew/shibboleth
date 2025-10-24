@@ -4,6 +4,7 @@ X-Fouroboros-Type: issue
 Message-ID: 0002@awesome-project@awesome-project
 Date: Mon, 20 Oct 2025 01:24:37 -0000
 Subject: Make it naturally work on Windows
+X-Fouroboros-Status: closed
 
 There are some colors and things that are hot garbage with the way that I'm currently doing things. It's pretty fine for now but... it would probably be good to make it work naturally on Win.
 
@@ -13,3 +14,9 @@ Looks like the first problem is pkg_resources isn't available on Windows. Also
 readline, though pyreadline is out there that could suffice, if present. But I
 also definitely just want a standalone shibboleth file that can be dropped
 somewhere and run reasonably well.
+
+From: Wayne Werner <wayne@waynewerner.com>
+Date: Thu, 23 Oct 2025 22:41:22 -0000
+
+So... I think I actually have this running now. I took all the coloring
+out and just have it very basic.

@@ -1,0 +1,14 @@
+From: Wayne Werner <wayne@waynewerner.com>
+To: issues+shibboleth@waynewerner.com
+X-Fouroboros-Type: issue
+Message-ID: 0001@shibboleth
+Date: Mon, 20 Oct 2025 01:23:32 -0000
+Subject: Make a kanban board style UI
+X-Fouroboros-Status: closed
+
+What it says on the tin. The regular cli/cmd basic stdlib approach is cool, but I definitely could use some more.
+
+From: Wayne Werner <wayne@waynewerner.com>
+Date: Thu, 23 Oct 2025 22:40:30 -0000
+
+I've got one! It's very hacky right now but it works!
