@@ -246,6 +246,8 @@ class Task:
             self._priority = '5-someday'
         elif '6-waiting' in self.tags:
             self._priority = '6-waiting'
+        elif 'done' in self.tags:
+            self._priority = 'done'
         else:
             self._priority = None
 
