@@ -34,7 +34,7 @@ class CardBack(ModalScreen):
 
     def __init__(self, task):
         super().__init__()
-        self.task = shibboleth.Task(task)
+        self.task = task
 
     def compose(self) -> ComposeResult:
         with Horizontal():
@@ -81,11 +81,12 @@ class Card(Static, can_focus=True):
         (">", "move_right", "Move Card Right"),
     ]
 
+    task = reactive(None)
+
     class Flipped(Message):
-        def __init__(self, my_title, filename):
+        def __init__(self, task):
             super().__init__()
-            self.title = my_title
-            self.filename = filename
+            self.task = task
 
     class MoveLeft(Message):
         def __init__(self, filename, card):
@@ -99,9 +100,19 @@ class Card(Static, can_focus=True):
             self.filename = filename
             self.card = card
 
+    class MouseMoving(Message):
+        def __init__(self, task, card):
+            super().__init__()
+            self.task = task
+            self.card = card
+
+    def __init__(self, task, *args, **kwargs):
+        super().__init__(rm.Markdown(task.fancy_title), *args, **kwargs)
+        self.task = task
+
 
     def action_go_zoom(self) -> None:
-        self.post_message(self.Flipped(self.content, filename=self.name))
+        self.post_message(self.Flipped(self.content, filename=self.task.filename))#self.name))
 
     def action_move_left(self) -> None:
         self.post_message(self.MoveLeft(filename=self.name, card=self))
@@ -111,7 +122,11 @@ class Card(Static, can_focus=True):
 
     def on_click(self, event: Click):
         if event.chain > 1:
-            self.post_message(self.Flipped(self.content, filename=self.name))
+            self.post_message(self.Flipped(task=self.task))
+
+    def on_mouse_move(self, event: events.MouseEvent):
+        if event.button == 1:
+            self.post_message(self.MouseMoving(task=self.task, card=self))
 
 class Column(Static):
     BINDINGS = [
@@ -131,6 +146,10 @@ class Column(Static):
         }
 
     '''
+    class Entered(Message):
+        def __init__(self, node):
+            super().__init__()
+            self.node = node
 
     class NextColumn(Message): 
         def __init__(self, current):
@@ -146,7 +165,7 @@ class Column(Static):
         yield Static(self.id[4:])
         with VerticalScroll(can_focus=False):
             for task in self.tasks:
-                yield Card(rm.Markdown(task.fancy_title), name=task.path)
+                yield Card(task=task)#rm.Markdown(task.fancy_title), name=task.path)
             yield Input(placeholder="New card...")
 
     def action_next_card(self) -> None:
@@ -163,11 +182,15 @@ class Column(Static):
     def action_previous_column(self) -> None:
         self.post_message(self.PreviousColumn(self))
 
-
+    def on_mouse_move(self) -> None:
+        log('hi')
+        self.post_message(self.Entered(node=self))
 
 class Shibboleth(App):
     CSS_PATH = "shibboleth.tcss"
     BINDINGS = [('q', 'quit', 'Quit')]
+
+    dragged_card = None
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -194,8 +217,8 @@ class Shibboleth(App):
         self.screen.focus_next(Card)
 
     def on_card_flipped(self, event: Card.Flipped) -> None:
-        self.push_screen(CardBack(event.filename), self.update_task)
-        log("heck yes! ", event.filename)
+        log.debug("Flippin' task:", event.task)
+        self.push_screen(CardBack(event.task), self.update_task)
 
     def on_card_move_left(self, event: Card.MoveLeft) -> None:
         task = shibboleth.Task(event.filename)
@@ -207,7 +230,7 @@ class Shibboleth(App):
             event.card.remove()
             task.priority = prev_priority
             prev_col = self.query_one(f'#col-{prev_priority} VerticalScroll', VerticalScroll)
-            card = Card(rm.Markdown(task.fancy_title), name=task.path)
+            card = Card(task=task)#rm.Markdown(task.fancy_title), name=task.path)
             prev_col.mount(card, before="Input")
             card.focus()
             card.scroll_visible()
@@ -221,10 +244,37 @@ class Shibboleth(App):
             event.card.remove()
             task.priority = next_priority
             next_col = self.query_one(f'#col-{next_priority} VerticalScroll', VerticalScroll)
-            card = Card(rm.Markdown(task.fancy_title), name=task.path)
+            card = Card(task=task)#rm.Markdown(task.fancy_title), name=task.path)
             next_col.mount(card, before="Input")
             card.focus()
             card.scroll_visible()
+
+    def on_card_mouse_moving(self, event: Card.MouseMoving) -> None:
+        if self.dragged_card is None:
+            self.dragged_card = Card(task=event.task, classes="moving")
+            self.screen.mount(self.dragged_card)
+            event.card.remove()
+
+    def on_column_entered(self, event: events.Event):
+        log("Entered: ", event.node)
+
+    def on_mouse_move(self, event: events.MouseMove) -> None:
+        if event.button == 1:
+            if self.dragged_card:
+                self.dragged_card.offset = event.screen_offset - (3, 2)
+            else:
+                log("moving")
+
+    def on_mouse_up(self, event: events.MouseUp) -> None:
+        if self.dragged_card:
+            column_card = Card(task=self.dragged_card.task)
+            self.dragged_card.remove()
+            self.dragged_card = None
+            log(event)
+            for widget, region in self.screen.get_widgets_at(*self.mouse_position):
+                if widget.id and widget.id.startswith('col-'):
+                    log(widget)
+                    widget.mount(column_card, before="Input")
 
     def on_column_next_column(self, message: Column.NextColumn):
         self.screen.focus_next(Card)

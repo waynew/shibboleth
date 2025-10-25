@@ -1,3 +1,7 @@
+Screen {
+    layers: normal floating;
+}
+
 Column:focus-within {
     border: double green;
 }
@@ -17,6 +21,7 @@ Column {
         background: #3f3f3f;
         margin: 1;
         border: solid;
+
     }
 
     Card:focus {
@@ -51,10 +56,20 @@ CardBack {
     Horizontal #close {
         width: 2;
     }
+
 }
 
 
 Shibboleth Horizontal {
     height: 3;
     align-horizontal: right;
+}
+
+Card.moving {
+    layer: floating;
+    height: 4;
+    width: 26;
+    background: blue;
+    offset: 3 4;
+    border: thick white;
 }
