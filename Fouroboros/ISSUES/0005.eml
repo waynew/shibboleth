@@ -1,8 +1,9 @@
 From: Wayne Werner <wayne@waynewerner.com>
 To: None
 X-Fouroboros-Type: issue
-Message-ID: 019a1d5d-ce25-7281-ac9a-87a96686af6b@awesome-project
+Message-ID: 0005@awesome-project
 Date: Sat, 25 Oct 2025 21:54:38 -0000
 Subject: Sort order
+X-Fouroboros-Status: open
 
 We have priority for the columns, but we probably want something like `sort:N` in the tags.

@@ -1,9 +1,10 @@
 From: Wayne Werner <wayne@waynewerner.com>
 To: None
 X-Fouroboros-Type: issue
-Message-ID: 019a1d65-4a46-70b1-ba9f-69afd66ad5a7@awesome-project
+Message-ID: 0006@awesome-project
 Date: Sat, 25 Oct 2025 22:02:48 -0000
 Subject: Improve card back view
+X-Fouroboros-Status: open
 
 Right now we're missing a whole bunch of information. We can do better!
 
