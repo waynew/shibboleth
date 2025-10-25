@@ -4,5 +4,12 @@ X-Fouroboros-Type: issue
 Message-ID: 0003@awesome-project@awesome-project
 Date: Tue, 21 Oct 2025 21:05:08 -0000
 Subject: Make mouse drag/drop work
+X-Fouroboros-Status: closed
 
 Right now it doesn't, and that would be pretty cool. We'd just have to detect where the mouse starts and where it goes to. We might even be able to put a lil animated card?
+
+From: Wayne Werner <wayne@waynewerner.com>
+Date: Sat, 25 Oct 2025 21:52:53 -0000
+
+Hey! I got this done! Mouse drag & drop works! Not quite the order yet,
+but I'll do that later...

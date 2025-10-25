@@ -1,0 +1,38 @@
+From: Wayne Werner <wayne@waynewerner.com>
+To: None
+X-Fouroboros-Type: issue
+Message-ID: 019a1d65-4a46-70b1-ba9f-69afd66ad5a7@awesome-project
+Date: Sat, 25 Oct 2025 22:02:48 -0000
+Subject: Improve card back view
+
+Right now we're missing a whole bunch of information. We can do better!
+
+We want something like:
+
+
+```
+This is the card title
+list: 1-now
+labels: one two three +
+no due date
+
+Description:
+
+blah blah blah this is how to do the thing
+
+Checklist    [hide completed items]
+[x] ~something done~
+[ ] do this thing
+[ ] do anotherthing
+[ ] cool beans
+
+activity:
+
+Did a cool thing on this
+- 2025-01-01 22:17 - Person Who Did It
+
+Did another different thing
+- 2024-12-09 12:22 - Person who wrote this note
+```
+
+Might be some other bits & pieces, but... for sure that as a minimum
