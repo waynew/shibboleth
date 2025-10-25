@@ -72,6 +72,11 @@ class CardBack(ModalScreen):
         else:
             self.dismiss()
 
+    def on_mouse_up(self, event: events.MouseUp):
+        widget, region = self.get_widget_at(event.screen_x, event.screen_y)
+        if widget is self:
+            self.action_clean_dismiss()
+
 
 
 class Card(Static, can_focus=True):
