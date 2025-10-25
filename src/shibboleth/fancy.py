@@ -146,10 +146,6 @@ class Column(Static):
         }
 
     '''
-    class Entered(Message):
-        def __init__(self, node):
-            super().__init__()
-            self.node = node
 
     class NextColumn(Message): 
         def __init__(self, current):
@@ -181,10 +177,6 @@ class Column(Static):
 
     def action_previous_column(self) -> None:
         self.post_message(self.PreviousColumn(self))
-
-    def on_mouse_move(self) -> None:
-        log('hi')
-        self.post_message(self.Entered(node=self))
 
 class Shibboleth(App):
     CSS_PATH = "shibboleth.tcss"
@@ -255,9 +247,6 @@ class Shibboleth(App):
             self.screen.mount(self.dragged_card)
             event.card.remove()
 
-    def on_column_entered(self, event: events.Event):
-        log("Entered: ", event.node)
-
     def on_mouse_move(self, event: events.MouseMove) -> None:
         if event.button == 1:
             if self.dragged_card:
@@ -267,13 +256,15 @@ class Shibboleth(App):
 
     def on_mouse_up(self, event: events.MouseUp) -> None:
         if self.dragged_card:
-            column_card = Card(task=self.dragged_card.task)
+            task = self.dragged_card.task
+            column_card = Card(task=task)
             self.dragged_card.remove()
             self.dragged_card = None
-            log(event)
             for widget, region in self.screen.get_widgets_at(*self.mouse_position):
                 if widget.id and widget.id.startswith('col-'):
-                    log(widget)
+                    priority = widget.id[4:]
+                    log.debug('new priority:', priority)
+                    task.priority = priority
                     widget.mount(column_card, before="Input")
 
     def on_column_next_column(self, message: Column.NextColumn):
