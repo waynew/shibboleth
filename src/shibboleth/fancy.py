@@ -203,8 +203,12 @@ class Shibboleth(App):
             self.exit()
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
-        log("wonk", event.input, event.value)
+        log("wonk", event.input, event.value, event.input.parent.parent)
+        priority = event.input.parent.parent.id[4:]
+        if priority == 'None':
+            priority = None
         task = shibboleth.Task.create_from_content(f"Title: {event.value}")
+        task.priority = priority
         log("new task?", task)
         self.update_tasks()
 
