@@ -41,7 +41,7 @@ CardBack {
     }
     
     VerticalScroll {
-        width: 80%;
+        max-width: 80;
         background: #272727;
         max-height: 80%;
         min-height: 80%;
@@ -50,6 +50,7 @@ CardBack {
     Horizontal {
         align-horizontal: right;
         width: 80%;
+        max-width: 80;
         height: auto;
     }
 
