@@ -1,5 +1,5 @@
-import subprocess
 import os
+import subprocess
 from datetime import datetime
 from textwrap import dedent
 
@@ -123,9 +123,7 @@ class Card(Static, can_focus=True):
             subprocess.run(["vim", self.task.path])
 
     def action_go_zoom(self) -> None:
-        self.post_message(
-            self.Flipped(task=self.task, card=self)
-        )
+        self.post_message(self.Flipped(task=self.task, card=self))
 
     def action_move_left(self) -> None:
         self.post_message(self.MoveLeft(task=self.task, card=self))
@@ -217,7 +215,7 @@ class Shibboleth(App):
     def on_input_submitted(self, event: Input.Submitted) -> None:
         log("wonk", event.input, event.value, event.input.parent.parent)
         priority = event.input.parent.parent.id[4:]
-        if priority == 'None':
+        if priority == "None":
             priority = None
         task = shibboleth.Task.create_from_content(f"Title: {event.value}")
         task.priority = priority
@@ -293,7 +291,7 @@ class Shibboleth(App):
             for widget, region in self.screen.get_widgets_at(*self.mouse_position):
                 if widget.id and widget.id.startswith("col-"):
                     priority = widget.id[4:]
-                    if priority == 'None':
+                    if priority == "None":
                         priority = None
                     log.debug("new priority:", priority)
                     task.priority = priority
