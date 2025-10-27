@@ -32,6 +32,7 @@ class CardBack(ModalScreen):
     BINDINGS = [
         ("ctrl+enter", "add_comment", "Add Comment"),
         ("escape", "clean_dismiss", "Back"),
+        ("f4", "external_edit", "Edit Raw"),
     ]
     task = reactive(None, recompose=True)
     comment_area = getters.query_one("#new_comment", TextArea)
@@ -56,6 +57,11 @@ class CardBack(ModalScreen):
             self.action_clean_dismiss()
         elif event.button.id == "card_save":
             self.action_add_comment()
+
+    def action_external_edit(self) -> None:
+        with self.app.suspend():
+            subprocess.run(["vim", self.task.path])
+        self.mutate_reactive(CardBack.task)
 
     def action_add_comment(self) -> None:
         with self.task.path.open("a") as f:
@@ -118,7 +124,7 @@ class Card(Static, can_focus=True):
 
     def action_go_zoom(self) -> None:
         self.post_message(
-            self.Flipped(task=self.task)
+            self.Flipped(task=self.task, card=self)
         )
 
     def action_move_left(self) -> None:
