@@ -1,3 +1,4 @@
+import subprocess
 import os
 from datetime import datetime
 from textwrap import dedent
@@ -88,6 +89,7 @@ class Card(Static, can_focus=True):
         ("enter", "go_zoom", "Zoom"),
         ("<", "move_left", "Move Card Left"),
         (">", "move_right", "Move Card Right"),
+        ("f4", "external_edit", "Edit Raw"),
     ]
 
     task = reactive(None)
@@ -109,6 +111,10 @@ class Card(Static, can_focus=True):
     def __init__(self, task, *args, **kwargs):
         super().__init__(rm.Markdown(task.fancy_title), *args, **kwargs)
         self.task = task
+
+    def action_external_edit(self) -> None:
+        with self.app.suspend():
+            subprocess.run(["vim", self.task.path])
 
     def action_go_zoom(self) -> None:
         self.post_message(
