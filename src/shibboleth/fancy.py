@@ -92,28 +92,19 @@ class Card(Static, can_focus=True):
 
     task = reactive(None)
 
-    class Flipped(Message):
-        def __init__(self, task):
-            super().__init__()
-            self.task = task
-
-    class MoveLeft(Message):
-        def __init__(self, filename, card):
-            super().__init__()
-            self.filename = filename
-            self.card = card
-
-    class MoveRight(Message):
-        def __init__(self, filename, card):
-            super().__init__()
-            self.filename = filename
-            self.card = card
-
-    class MouseMoving(Message):
+    class CardMessage(Message):
         def __init__(self, task, card):
             super().__init__()
             self.task = task
             self.card = card
+
+    class Flipped(CardMessage): ...
+
+    class MoveLeft(CardMessage): ...
+
+    class MoveRight(CardMessage): ...
+
+    class MouseMoving(CardMessage): ...
 
     def __init__(self, task, *args, **kwargs):
         super().__init__(rm.Markdown(task.fancy_title), *args, **kwargs)
@@ -121,18 +112,18 @@ class Card(Static, can_focus=True):
 
     def action_go_zoom(self) -> None:
         self.post_message(
-            self.Flipped(self.content, filename=self.task.filename)
-        )  # self.name))
+            self.Flipped(task=self.task)
+        )
 
     def action_move_left(self) -> None:
-        self.post_message(self.MoveLeft(filename=self.name, card=self))
+        self.post_message(self.MoveLeft(task=self.task, card=self))
 
     def action_move_right(self) -> None:
-        self.post_message(self.MoveRight(filename=self.name, card=self))
+        self.post_message(self.MoveRight(task=self.task, card=self))
 
     def on_click(self, event: Click):
         if event.chain > 1:
-            self.post_message(self.Flipped(task=self.task))
+            self.post_message(self.Flipped(task=self.task, card=self))
 
     def on_mouse_move(self, event: events.MouseEvent):
         if event.button == 1:
@@ -225,13 +216,15 @@ class Shibboleth(App):
         self.push_screen(CardBack(event.task), self.update_task)
 
     def on_card_move_left(self, event: Card.MoveLeft) -> None:
-        task = shibboleth.Task(event.filename)
+        task = event.task
         priority = task.priority
-        log.debug(f"Current priority {priority}")
+        log.debug(f"Current priority {repr(priority)} {priority}")
         prev_priority = PRIORITIES[priority]["prev"]
+        log("Priority", type(prev_priority), repr(prev_priority))
         if prev_priority is not None:
             log.debug(f"Moving card to {prev_priority}")
             event.card.remove()
+            log("Priority", type(prev_priority), repr(prev_priority))
             task.priority = prev_priority
             prev_col = self.query_one(
                 f"#col-{prev_priority} VerticalScroll", VerticalScroll
@@ -242,9 +235,11 @@ class Shibboleth(App):
             card.scroll_visible()
 
     def on_card_move_right(self, event: Card.MoveRight) -> None:
-        task = shibboleth.Task(event.filename)
+        task = event.task
         priority = task.priority
+        log("Priority", type(priority), repr(priority))
         next_priority = PRIORITIES[priority]["next"]
+        log("Priority", type(next_priority), repr(next_priority))
         if next_priority is not None:
             event.card.remove()
             task.priority = next_priority
@@ -260,12 +255,16 @@ class Shibboleth(App):
         if self.dragged_card is None:
             self.dragged_card = Card(task=event.task, classes="moving")
             self.screen.mount(self.dragged_card)
+            event.card.parent.focus()
             event.card.remove()
 
     def on_mouse_move(self, event: events.MouseMove) -> None:
         if event.button == 1:
             if self.dragged_card:
                 self.dragged_card.offset = event.screen_offset - (3, 2)
+                for widget, region in self.screen.get_widgets_at(*self.mouse_position):
+                    if widget.id and widget.id.startswith("col-"):
+                        widget.focus()
             else:
                 log("moving")
 
@@ -278,6 +277,8 @@ class Shibboleth(App):
             for widget, region in self.screen.get_widgets_at(*self.mouse_position):
                 if widget.id and widget.id.startswith("col-"):
                     priority = widget.id[4:]
+                    if priority == 'None':
+                        priority = None
                     log.debug("new priority:", priority)
                     task.priority = priority
                     widget.mount(column_card, before="Input")

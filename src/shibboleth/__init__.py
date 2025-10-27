@@ -229,7 +229,6 @@ class Task:
 
         self.tags.listeners.append(self._on_tag_update)
         self._old_fname = path
-        print(self._old_fname)
 
         if "inbox" in self.tags:
             self._priority = "inbox"
