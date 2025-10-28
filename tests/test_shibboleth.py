@@ -1,3 +1,4 @@
+import os
 import functools
 import subprocess
 from pathlib import Path
@@ -20,6 +21,20 @@ def standalone_shibby(tmp_path_factory):
     shibboleth_file.write_bytes(Path(shibboleth.__file__).read_bytes())
 
     yield shibboleth_file
+
+@pytest.fixture
+def shibby_with_git(standalone_shibby, tmp_path):
+    prev = os.getcwd()
+    try:
+        os.chdir(tmp_path)
+        with open('.gitignore', 'w') as f:
+            f.write('*.sw[a-p]\n')
+        subprocess.run(['git', 'init'])
+        subprocess.run(['git', 'add', '.'])
+        subprocess.run(['git', 'commit', '-m', 'initial commit'])
+        yield standalone_shibby
+    finally:
+        os.chdir(prev)
 
 
 def test_shibboleth_returns_correct_version(standalone_shibby):
@@ -93,8 +108,6 @@ def test_template_file_should_python_format_with_provided_args():
 def test_template_file_with_missing_fields_should_error_and_not_create():
     pytest.skip()
 
-def test_task_attach_should_put_files_in_dot_shibboleth_attachments_directory_and_add_a_header():
-    pytest.skip()
 
 def test_shibboleth_flow(subtests, standalone_shibby, tmp_path):
     env = {'SHIBBOLETH_DIR': str(tmp_path)}
@@ -161,9 +174,19 @@ def test_if_shibboleth_autocommit_shibboleth_should_identify_vcs():
 def test_if_shibboleth_autocommit_and_not_tracked_or_found_shibboleth_should_error():
     pytest.skip()
 
-def test_shibboleth_autocommit(subtests):
+def test_shibboleth_autocommit(subtests, shibby_with_git):
+    with open('.shibboleth', 'w') as f:
+        f.write('autocommit = true')
+
+    
+    resp = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True)
+    prev_hash = resp.stdout.decode()
     with subtests.test("no changes made should not error or commit"):
-        pytest.skip()
+
+
+        resp = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True)
+        post_hash = resp.stdout.decode()
+        assert prev_hash == post_hash
 
     with subtests.test("changes in a dirty directory should warn"):
         pytest.skip()

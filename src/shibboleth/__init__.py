@@ -44,7 +44,7 @@ PRIORITIES = {
 TAG_PATTERN = re.compile(r"(?P<title>.*?)\[(?P<tags>.*?)\](\.(?P<ext>.*))?")
 NO_TAG_PATTERN = re.compile(r"(?P<title>[^.]*)(?:\.(?P<ext>.*))?")
 HEADER_PARSER = email.parser.Parser(policy=email.policy.default)
-WORKDIR = Path(os.environ.get('SHIBBOLETH_DIR', '.')).resolve()
+WORKDIR = Path(os.environ.get("SHIBBOLETH_DIR", ".")).resolve()
 
 
 def edit(editor, flags, filename):
