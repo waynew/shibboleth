@@ -844,7 +844,13 @@ class Shibboleth(cmd.Cmd):
             title = input("Title: ").strip()
         filename = f"{title.replace(' ', '-')}[{datetime.now():%Y%m%d~%H%M%S}].md"
         content = content or f"Title: {title}\n\n"
-        Path(filename).write_text(content)
+        file = Path(filename)
+        file.write_text(content)
+        if file.exists():
+            self.vcs.commit(msg="Shibboleth: New task")
+            assert False
+        else:
+            assert False
         self.selected = None
         self.do_edit(filename, flags="+'normal Go'")
         self.do_select(filename)

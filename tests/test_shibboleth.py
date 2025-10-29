@@ -8,9 +8,9 @@ import pytest
 import shibboleth
 
 
-def run_shib(shibby, *cmd):
+def run_shib(shibby, *cmd, **kwargs):
     output = subprocess.run(
-        ["python", shibby, *cmd], capture_output=True
+        ["python", shibby, *cmd], capture_output=True, **kwargs
     )
     return output.stdout.decode(), output.stderr.decode()
 
@@ -178,11 +178,17 @@ def test_shibboleth_autocommit(subtests, shibby_with_git):
     with open('.shibboleth', 'w') as f:
         f.write('autocommit = true')
 
-    
+    faux_environment = {"EDITOR": "test"}
+
+    run_shib(shibby_with_git, "new", "asdf", env=faux_environment)
+    with subtests.test("new task should commit with expected message"):
+        assert False
+
     resp = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True)
     prev_hash = resp.stdout.decode()
     with subtests.test("no changes made should not error or commit"):
 
+        run_shib(shibby_with_git, "new", "asdf", env=faux_environment)
 
         resp = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True)
         post_hash = resp.stdout.decode()
@@ -195,9 +201,6 @@ def test_shibboleth_autocommit(subtests, shibby_with_git):
         pytest.skip()
 
     with subtests.test("changes in a dirty directory with staged changes but no task changes should warn but leave index"):
-        pytest.skip()
-
-    with subtests.test("new task should commit with expected message"):
         pytest.skip()
 
     with subtests.test("updating a task should commit with expected message"):
