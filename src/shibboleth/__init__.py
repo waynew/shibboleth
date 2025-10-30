@@ -11,17 +11,46 @@ import readline
 import subprocess
 import sys
 import types
+import warnings
 import webbrowser
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
 
+import tomllib
+
 logger = logging.getLogger(__name__)
 
 __version__ = "25.10.4b1"
 
-HIDDEN_FILES = (".last.shib", ".gitignore", "shibboleth.log")
+
+class Shibboleth:
+    def __init__(self):
+        self.root_dir = Path(os.environ.get("SHIBBOLETH_DIR", ".")).absolute()
+        shibboleth_file = self.root_dir / ".shibboleth"
+        if not shibboleth_file.exists():
+            self.config = {}
+        else:
+            self.config = tomllib.loads(shibboleth_file.read_text())
+
+        if "lists" in self.config:
+            Task.lists = self.config["lists"]
+
+    @property
+    def tasks_by_list(self):
+        by_list = {list_: [] for list_ in Task.lists}
+        for task in tasks_in_dir(path=self.root_dir):
+            if task.priority not in by_list:
+                warnings.warn(
+                    f"Task {task.filename} is not in any of lists: {Task.lists}."
+                )
+            else:
+                by_list[task.priority].append(task)
+        return by_list
+
+
+HIDDEN_FILES = (".last.shib", ".gitignore", "shibboleth.log", ".shibboleth")
 DEFAULT_COLORS = {
     "inbox": 34,
     "1-now": 31,  # red
@@ -214,6 +243,18 @@ class Tags(list):
 
 
 class Task:
+    lists = [
+        "inbox",
+        "1-now",
+        "2-next",
+        "3-soon",
+        "4-later",
+        "5-someday",
+        "6-waiting",
+        "done",
+        None,
+    ]
+
     def __init__(self, path):
         path = WORKDIR / path
         m = re.search(TAG_PATTERN, path.name)
@@ -230,22 +271,10 @@ class Task:
         self.tags.listeners.append(self._on_tag_update)
         self._old_fname = path
 
-        if "inbox" in self.tags:
-            self._priority = "inbox"
-        elif "1-now" in self.tags:
-            self._priority = "1-now"
-        elif "2-next" in self.tags:
-            self._priority = "2-next"
-        elif "3-soon" in self.tags:
-            self._priority = "3-soon"
-        elif "4-later" in self.tags:
-            self._priority = "4-later"
-        elif "5-someday" in self.tags:
-            self._priority = "5-someday"
-        elif "6-waiting" in self.tags:
-            self._priority = "6-waiting"
-        elif "done" in self.tags:
-            self._priority = "done"
+        for the_list in Task.lists:
+            if the_list in self.tags:
+                self._priority = the_list
+                break
         else:
             self._priority = None
 
@@ -350,7 +379,7 @@ class Task:
         return self._old_fname.read_text()
 
 
-def tasks_by_priority():
+def tasks_by_priority(path=None):
     priorities = tuple(PRIORITIES.values()) + ("done", None)
     by_priority = {
         None: [],
@@ -363,7 +392,7 @@ def tasks_by_priority():
         "5-someday": [],
         "6-waiting": [],
     }
-    for task in tasks_in_dir():
+    for task in tasks_in_dir(path=path):
         if "done" in task.tags:
             by_priority["done"].append(task)
         else:
@@ -492,7 +521,7 @@ q   quit review
         return True
 
 
-class Shibboleth(cmd.Cmd):
+class ShibbolethCmd(cmd.Cmd):
     plugins = load_plugins()
 
     def __init__(self, check_for_last_task=True):
@@ -1052,7 +1081,7 @@ class Worker(Shibboleth):
 
 def run():
     # I'll never ever write a song about the shibby
-    shibby = Shibboleth()
+    shibby = ShibbolethCmd()
     if sys.argv[1:]:
         shibby.onecmd(" ".join(sys.argv[1:]))
     else:
