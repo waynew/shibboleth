@@ -1,0 +1,32 @@
+From: Wayne Werner <wayne@waynewerner.com>
+To: None
+X-Fouroboros-Type: issue
+Message-ID: 0009@awesome-project
+Date: Wed, 29 Oct 2025 23:14:22 -0000
+Subject: Bug - word wrap is wrong with multi-line comments
+X-Fouroboros-Status: open
+
+Instead of 
+
+
+```
+2021-01-02 03:04
+----------------
+
+booop
+
+doop
+```
+
+We get
+
+```
+            2021-01-02 03:04
+            ----------------
+
+            booop
+
+doop
+```
+
+Whoops!

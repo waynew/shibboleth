@@ -71,8 +71,8 @@ class CardBack(ModalScreen):
             {datetime.now():%Y-%m-%d %H:%M:%S}
             {"-" * 19}
 
-            {self.comment_area.text}
-            """)
+            """)+
+            self.comment_area.text
             )
             self.mutate_reactive(CardBack.task)
         self.comment_area.clear()
