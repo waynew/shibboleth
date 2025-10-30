@@ -4,6 +4,7 @@ X-Fouroboros-Type: issue
 Message-ID: 0004@awesome-project@awesome-project
 Date: Tue, 21 Oct 2025 21:08:06 -0000
 Subject: Make shifty bits work better
+X-Fouroboros-Status: closed
 
 right now < and > will move the cards to different columns but then we lose focus. We should still be able to track which card needs to have focus.
 
@@ -16,3 +17,13 @@ It would probably look something like:
 src_col.mutate_reactive(Column.tasks)
 dst_col.mutate_reactive(Column.tasks)
 ```
+
+From: Wayne Werner <wayne@waynewerner.com>
+Date: Thu, 30 Oct 2025 02:09:27 -0000
+
+Okay so I think I've actually sorted this part of it out, just moving a card among the columns and keeping focus.
+
+From: Wayne Werner <wayne@waynewerner.com>
+Date: Thu, 30 Oct 2025 02:10:17 -0000
+
+Yep. I did. Only thing it still needs is the ability to move things up and down but that's not this card.
