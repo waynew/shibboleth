@@ -7,13 +7,15 @@ Subject: Creating a card goes boom
 X-Fouroboros-Status: open
 
 ```
-│ /home/wayne/programming/shibboleth/src/shibboleth/__init__.py:244 in remove           │
-│                                                                                       │
-│    241 │   │   self._broadcast(action='sort', value=None)                             │
-│    242 │                                                                              │
-│    243 │   def remove(self, value):                                                   │
-│ ❱  244 │   │   super().remove(value)                                                  │
-│    245 │   │   self._broadcast(action='remove', value=value)                          │
-│    246                                                                                │
-│    247                                                                                │
+/home/wayne/programming/shibboleth/src/shibboleth/__init__.py:244 in remove
+                                                                                       
+    241 │   │   self._broadcast(action='sort', value=None)
+    242 │                                                
+    243 │   def remove(self, value):                    
+ ❱  244 │   │   super().remove(value)                  
+    245 │   │   self._broadcast(action='remove', value=value)
+    246
+    247
 ```
+
+That goes boom
