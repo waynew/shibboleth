@@ -341,7 +341,7 @@ class Task:
 
     @property
     def priority(self):
-        return self._priority
+        return self.list
 
     @property
     def list(self):
@@ -356,13 +356,7 @@ class Task:
 
     @priority.setter
     def priority(self, value):
-        if self._priority is not None:
-            self.tags.remove(self._priority)
-
-        if value is not None:
-            self.tags.append(value)
-
-        self._priority = value
+        self.list = value
 
     @property
     def path(self):
