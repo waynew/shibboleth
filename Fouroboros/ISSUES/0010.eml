@@ -4,7 +4,7 @@ X-Fouroboros-Type: issue
 Message-ID: 0010@awesome-project
 Date: Fri, 31 Oct 2025 12:09:57 -0000
 Subject: Creating a card goes boom
-X-Fouroboros-Status: open
+X-Fouroboros-Status: in_progress
 
 ```
 /home/wayne/programming/shibboleth/src/shibboleth/__init__.py:244 in remove
@@ -19,3 +19,4 @@ X-Fouroboros-Status: open
 ```
 
 That goes boom
+at goes boom

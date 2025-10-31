@@ -1,0 +1,8 @@
+From: Wayne Werner <wayne@waynewerner.com>
+To: None
+X-Fouroboros-Type: issue
+Message-ID: 019a3a32-5c1d-7373-b774-08249335fd50@awesome-project
+Date: Fri, 31 Oct 2025 12:16:10 -0000
+Subject: Creating card in fancy UI fails to add extension
+
+Try creating a card then `ls` in your directory and you'll see that the task card is missing the `.md` extension. This is less good.
