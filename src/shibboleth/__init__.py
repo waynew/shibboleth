@@ -22,7 +22,7 @@ import tomllib
 
 logger = logging.getLogger(__name__)
 
-__version__ = "25.10.4b1"
+__version__ = "25.10.5b1"
 
 
 class Shibboleth:
