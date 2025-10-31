@@ -250,6 +250,20 @@ TODOs
 CHANGELOG
 ---------
 
+## [25.10.5]
+
+### Fixed
+
+- Issue 10 - card creation in fancy UI no longer crashes.
+- Issue 11 - Creating card in fancy UI now adds .md extension.
+
+## [25.10.4]
+
+### Added
+
+- A whole bunch of fancy Textual UI stuff. Install with `shibboleth[fancy]` or
+  you're limited to the basic TUI.
+
 ## [0.9.1] - [2023-10-13]
 
 ### Changed
@@ -318,9 +332,10 @@ CHANGELOG
 
 ---
 
+
 ## [0.6.0] - [2021-06-17]
 
-## Fixed
+### Fixed
 
 - Unhandled exceptions are now caught and written to shibboleth.log instead of
   crashing.

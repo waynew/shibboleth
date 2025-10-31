@@ -241,8 +241,9 @@ class Tags(list):
         self._broadcast(action='sort', value=None)
 
     def remove(self, value):
-        super().remove(value)
-        self._broadcast(action='remove', value=value)
+        if value in self:
+            super().remove(value)
+            self._broadcast(action='remove', value=value)
 
 
 class Task:
@@ -284,7 +285,8 @@ class Task:
     @classmethod
     def create_from_content(self, content):
         parsed = HEADER_PARSER.parsestr(content)
-        filename = parsed["Title"]
+        filename = Path(parsed["Title"])
+        filename = filename.with_suffix('.md')
 
         task = Task(filename)
         task.path.touch()

@@ -4,6 +4,11 @@ X-Fouroboros-Type: issue
 Message-ID: 0011@awesome-project
 Date: Fri, 31 Oct 2025 12:16:10 -0000
 Subject: Creating card in fancy UI fails to add extension
-X-Fouroboros-Status: in_progress
+X-Fouroboros-Status: closed
 
 Try creating a card then `ls` in your directory and you'll see that the task card is missing the `.md` extension. This is less good.
+
+From: Wayne Werner <wayne@waynewerner.com>
+Date: Fri, 31 Oct 2025 12:36:40 -0000
+
+Got this fixed, turns out the `from_content` method wasn't adding the extension from the title.itle.
