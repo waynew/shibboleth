@@ -1,9 +1,10 @@
 From: Wayne Werner <wayne@waynewerner.com>
 To: None
 X-Fouroboros-Type: issue
-Message-ID: 019a3a2c-accb-730b-a01d-a22ad1dd133c@awesome-project
+Message-ID: 0010@awesome-project
 Date: Fri, 31 Oct 2025 12:09:57 -0000
 Subject: Creating a card goes boom
+X-Fouroboros-Status: open
 
 ```
 │ /home/wayne/programming/shibboleth/src/shibboleth/__init__.py:244 in remove           │
