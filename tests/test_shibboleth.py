@@ -376,3 +376,42 @@ def test_shibboleth_tasks_by_list_should_use_lists_defined_in_dot_shibboleth_fil
     tasks = shibby.tasks_by_list
     actual_lists = tuple(tasks)
     assert actual_lists == second_lists
+
+
+@pytest.mark.parametrize(
+    "lists, tags", [
+        ((), ('one', 'two', 'fnord', 'any')),
+        (('one', 'two','three'), ('nothing', 'to', 'see', 'here', 'four', '3', '1', '2')),
+        (('whatever', 'is', 'this', 'banana'), ('fnord', 'fnordy', 'fnordzilla')),
+    ]
+)
+def test_task_should_have_None_list_if_tags_not_in_any_Task_list(lists, tags, tmp_path):
+    task_file = (tmp_path / 'fnord.md')
+    task_file.touch()
+    shibboleth.Task.lists = lists
+
+    task = shibboleth.Task(path=task_file)
+    task.tags.extend(tags)
+
+    assert task.list is None
+
+
+@pytest.mark.parametrize(
+    "lists, tags", [
+        (('good',), ('good',)),
+        (('good'), ('one', 'good', 'two', 'fnord', 'any')),
+        (('one', 'two','three'), ('one', 'nothing', 'to', 'see', 'here', 'four', '3', '1', '2')),
+        (('whatever', 'is', 'this', 'banana'), ('is', 'fnord', 'fnordy', 'fnordzilla')),
+    ]
+)
+def test_task_should_have_matching_list_if_tags_has_Task_list_in_tags(lists, tags, tmp_path):
+    task_file = (tmp_path / 'fnord.md')
+    task_file.touch()
+    shibboleth.Task.lists = lists
+
+    task = shibboleth.Task(path=task_file)
+    task.tags.extend(tags)
+
+    print(task.tags)
+    assert any(t in shibboleth.Task.lists for t in task.tags)
+    assert task.list in lists

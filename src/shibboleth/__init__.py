@@ -220,26 +220,29 @@ class Tags(list):
         super().__init__(*args, **kwargs)
         self.listeners = []
 
-    def _broadcast(self):
+    def _broadcast(self, *, action, value):
         for listener in self.listeners:
-            listener()
+            listener(action=action, value=value)
 
     def append(self, item):
+        action = 'add'
         if item not in self:
             super().append(item)
-        self._broadcast()
+            action = 'nop add'
+        self._broadcast(action=action, value=item)
 
     def extend(self, items):
-        super().extend(i for i in items if i not in self)
-        self._broadcast()
+        extended = [i for i in items if i not in self]
+        super().extend(extended)
+        self._broadcast(action="extend", value=extended)
 
     def sort(self):
         super().sort()
-        self._broadcast()
+        self._broadcast(action='sort', value=None)
 
     def remove(self, value):
         super().remove(value)
-        self._broadcast()
+        self._broadcast(action='remove', value=value)
 
 
 class Task:
@@ -273,10 +276,10 @@ class Task:
 
         for the_list in Task.lists:
             if the_list in self.tags:
-                self._priority = the_list
+                self._list = self._priority = the_list
                 break
         else:
-            self._priority = None
+            self._list = self._priority = None
 
     @classmethod
     def create_from_content(self, content):
@@ -294,7 +297,18 @@ class Task:
         self._old_fname.rename(new_filename)
         self._old_fname = new_filename
 
-    def _on_tag_update(self):
+    def _on_tag_update(self, action, value):
+        if isinstance(value, list):
+            for val in value:
+                if val in Task.lists and action == 'extend':
+                    value = val
+                    action = 'add'
+
+        if value in Task.lists:
+            if action == 'add':
+                self._list = value
+            elif action == 'remove':
+                self._list = None
         self._rename()
 
     @property
@@ -328,6 +342,17 @@ class Task:
     @property
     def priority(self):
         return self._priority
+
+    @property
+    def list(self):
+        return self._list
+
+    @list.setter
+    def list(self, value):
+        self.tags.remove(str(self._list))
+        if value:
+            self.tags.append(value)
+        self._list = value
 
     @priority.setter
     def priority(self, value):

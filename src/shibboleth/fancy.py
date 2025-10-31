@@ -196,12 +196,17 @@ class Shibboleth(App):
     BINDINGS = [("q", "quit", "Quit")]
 
     dragged_card = None
+    
+    def __init__(self, *args, shibboleth, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.shibboleth = shibboleth
 
     def compose(self) -> ComposeResult:
         yield Header()
         with HorizontalScroll():
-            for priority, tasks in shibboleth.tasks_by_priority():
-                col = Column(id=f"col-{priority}")
+            #for priority, tasks in shibboleth.tasks_by_priority():
+            for list_, tasks in self.shibboleth.tasks_by_list.items():
+                col = Column(id=f"col-{list_}")
                 col.tasks = tasks
                 yield col
         with Horizontal():
@@ -231,39 +236,40 @@ class Shibboleth(App):
 
     def on_card_move_left(self, event: Card.MoveLeft) -> None:
         task = event.task
-        priority = task.priority
-        log.debug(f"Current priority {repr(priority)} {priority}")
-        prev_priority = PRIORITIES[priority]["prev"]
-        log("Priority", type(prev_priority), repr(prev_priority))
-        if prev_priority is not None:
-            log.debug(f"Moving card to {prev_priority}")
-            event.card.remove()
-            log("Priority", type(prev_priority), repr(prev_priority))
-            task.priority = prev_priority
-            prev_col = self.query_one(
-                f"#col-{prev_priority} VerticalScroll", VerticalScroll
-            )
-            card = Card(task=task)  # rm.Markdown(task.fancy_title), name=task.path)
-            prev_col.mount(card, before="Input")
-            card.focus()
-            card.scroll_visible()
+        list_ = task.list
+        log.debug(f"Current priority {repr(list_)} {list_}")
+        prev_col = None
+        columns = list(self.query("Column"))
+        for column in columns:
+            if column.id == f"col-{list_}":
+                if prev_col:
+                    event.card.remove()
+                    prev_list = prev_col.id[4:]
+                    task.list = prev_list
+                    card = Card(task=task)  # rm.Markdown(task.fancy_title), name=task.path)
+                    prev_col.mount(card, before="Input")
+                    card.focus()
+                    card.scroll_visible()
+            prev_col = column
+
 
     def on_card_move_right(self, event: Card.MoveRight) -> None:
+        # TODO: make the rest of this like move left -W. Werner, 2025-10-30
         task = event.task
-        priority = task.priority
-        log("Priority", type(priority), repr(priority))
-        next_priority = PRIORITIES[priority]["next"]
-        log("Priority", type(next_priority), repr(next_priority))
-        if next_priority is not None:
-            event.card.remove()
-            task.priority = next_priority
-            next_col = self.query_one(
-                f"#col-{next_priority} VerticalScroll", VerticalScroll
-            )
-            card = Card(task=task)  # rm.Markdown(task.fancy_title), name=task.path)
-            next_col.mount(card, before="Input")
-            card.focus()
-            card.scroll_visible()
+        list_ = task.list
+        next_col = None
+        columns = list(self.query("Column"))
+        for column in reversed(columns):
+            if column.id == f"col-{list_}":
+                if next_col:
+                    event.card.remove()
+                    next_list = next_col.id[4:]
+                    task.list = next_list
+                    card = Card(task=task)  # rm.Markdown(task.fancy_title), name=task.path)
+                    next_col.mount(card, before="Input")
+                    card.focus()
+                    card.scroll_visible()
+            next_col = column
 
     def on_card_mouse_moving(self, event: Card.MouseMoving) -> None:
         if self.dragged_card is None:
@@ -290,11 +296,11 @@ class Shibboleth(App):
             self.dragged_card = None
             for widget, region in self.screen.get_widgets_at(*self.mouse_position):
                 if widget.id and widget.id.startswith("col-"):
-                    priority = widget.id[4:]
-                    if priority == "None":
-                        priority = None
-                    log.debug("new priority:", priority)
-                    task.priority = priority
+                    list_ = widget.id[4:]
+                    if list_ == "None":
+                        list_ = None
+                    log.debug("new list:", list_)
+                    task.list = list_
                     widget.mount(column_card, before="Input")
 
     def on_column_next_column(self, message: Column.NextColumn):
@@ -323,8 +329,8 @@ class Shibboleth(App):
             self.screen.focus_next(Card)
 
     def update_tasks(self):
-        for priority, tasks in shibboleth.tasks_by_priority():
-            col = self.query_one(f"#col-{priority}", Column)
+        for list_, tasks in self.shibboleth.tasks_by_list.items():
+            col = self.query_one(f"#col-{list_}", Column)
             col.tasks = tasks
 
     def update_task(self, response):
@@ -333,10 +339,11 @@ class Shibboleth(App):
 
 
 def app():
+    shibby = shibboleth.Shibboleth()
     shibboleth.WORKDIR = shibboleth.Path(
         os.environ.get("SHIBBOLETH_DIR", ".")
     ).resolve()
-    app = Shibboleth()
+    app = Shibboleth(shibboleth=shibby)
     return app
 
 
@@ -345,4 +352,4 @@ def run():
 
 
 if __name__ == "__main__":
-    app = Shibboleth()
+    run()
