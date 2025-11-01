@@ -22,7 +22,7 @@ import tomllib
 
 logger = logging.getLogger(__name__)
 
-__version__ = "25.10.5"
+__version__ = "25.11.0b1"
 
 
 class Shibboleth:
@@ -285,8 +285,9 @@ class Task:
     @classmethod
     def create_from_content(self, content):
         parsed = HEADER_PARSER.parsestr(content)
-        filename = Path(parsed["Title"])
-        filename = filename.with_suffix('.md')
+        filename = Path(re.sub('[^A-Za-z0-9.]+', '-', parsed["Title"]))
+        if not filename.suffix:
+            filename = filename.with_suffix('.md')
 
         task = Task(filename)
         task.path.touch()

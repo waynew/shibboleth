@@ -29,6 +29,17 @@ def restore_task_lists():
         None,
     ]
 
+@pytest.fixture(autouse=True)
+def to_tmp_path(tmp_path):
+    curdir = os.getcwd()
+    try:
+        shibboleth.WORKDIR = tmp_path
+        os.chdir(tmp_path)
+        yield
+    finally:
+        os.chdir(curdir)
+
+
 
 @pytest.fixture
 def tmp_path_os_environ(tmp_path):
@@ -415,3 +426,8 @@ def test_task_should_have_matching_list_if_tags_has_Task_list_in_tags(lists, tag
     print(task.tags)
     assert any(t in shibboleth.Task.lists for t in task.tags)
     assert task.list in lists
+
+
+def test_task_from_content_should_have_md_extension():
+    task = shibboleth.Task.create_from_content('Title: something silly')
+    assert task.filename == "something-silly[inbox].md"
