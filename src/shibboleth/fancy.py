@@ -8,9 +8,10 @@ from textual import events, getters, log
 from textual.app import App, ComposeResult
 from textual.containers import (
     Container,
-    Horizontal,
-    HorizontalScroll,
     Grid,
+    Horizontal,
+    HorizontalGroup,
+    HorizontalScroll,
     Vertical,
     VerticalGroup,
     VerticalScroll,
@@ -52,38 +53,62 @@ class CardBack(ModalScreen):
 
     def compose(self) -> ComposeResult:
         with VerticalScroll(id="cardback-scroll"):
-            with VerticalGroup(id='bonk'):
+            with VerticalGroup(id="cardback-grid"):
                 yield Label(
-                    rm.Markdown("# " + self.task.fancy_title.lstrip("#")), classes="title"
+                    rm.Markdown("# " + self.task.fancy_title.lstrip("#")),
+                    classes="title",
                 )
-                yield Button("X", id="close", compact=True)
+                b = Button("X", id="close", compact=True)
+                b.can_focus = False
+                yield b
 
                 with VerticalGroup(id="cardback-info") as v:
                     v.border_title = "Honk"
                     yield Static(
                         rm.Markdown(f"In list `{self.task.list}`"), classes="subheader"
                     )
-                    desc = Static(rm.Markdown(self.task.description), classes="description")
+                    yield Static(
+                        rm.Markdown(f"Due Date: `{self.task.due_date or 'none'}` ")
+                    )
+                    with HorizontalGroup(id="tag-list"):
+                        yield Label("Tags:")
+                        any_tags = False
+                        for tag in self.task.tags:
+                            if tag == self.task.list:
+                                continue
+                            yield Label(tag, classes="tag")
+                            any_tags = True
+                        if not any_tags:
+                            yield Label("None", classes="no-tags")
+                    desc = Static(
+                        rm.Markdown(self.task.description), classes="description"
+                    )
                     desc.border_title = "Description"
                     yield desc
 
                     with VerticalGroup(id="comments") as v:
                         v.border_title = "Comments"
                         for comment in self.task.comments:
-                            comment_widget = Static(rm.Markdown(comment.content.strip()), classes="comment")
+                            comment_widget = Static(
+                                rm.Markdown(comment.content.strip()), classes="comment"
+                            )
                             comment_widget.border_title = str(comment.date)
                             yield comment_widget
-
 
                     yield TextArea(placeholder="Add a comment", id="new_comment")
 
                     with Horizontal():
                         yield Button("Save", id="card_save")
-                
-                with VerticalGroup():
-                    yield Button('honk')
-                    yield Button('bonk')
 
+                with VerticalGroup(id="side-controls"):
+                    yield Label("Add to Card")
+                    yield Button("Tags", disabled=True)
+                    yield Button("Checklist", disabled=True)
+                    yield Button("Due Date", disabled=True)
+                    yield Label("Actions")
+                    yield Button("Move", disabled=True)
+                    yield Button("Copy", disabled=True)
+                    yield Button("Archive", disabled=True)
 
     def on_button_pressed(self, event: Button.Pressed):
         if event.button.id == "close":
@@ -98,7 +123,7 @@ class CardBack(ModalScreen):
 
     def action_add_comment(self) -> None:
         with self.task.path.open("a") as f:
-            now = datetime.now()
+            now = datetime.now().replace(microsecond=0)
             f.write(
                 dedent(f"""
 
@@ -108,8 +133,8 @@ class CardBack(ModalScreen):
             """)
                 + self.comment_area.text
             )
-            #self.mutate_reactive(CardBack.task)
-        #self.call_later(lambda: self.query_one("#card_save").scroll_visible())
+            # self.mutate_reactive(CardBack.task)
+        # self.call_later(lambda: self.query_one("#card_save").scroll_visible())
         comment_widget = Static(rm.Markdown(self.comment_area.text), classes="comment")
         comment_widget.border_title = str(now)
         self.comment_area.clear()

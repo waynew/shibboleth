@@ -22,7 +22,7 @@ import tomllib
 
 logger = logging.getLogger(__name__)
 
-__version__ = "25.11.0b1"
+__version__ = "25.11.0b2"
 
 
 COMMENT_HEADER_PATTERN = re.compile(
@@ -365,6 +365,10 @@ class Task:
     @property
     def title(self):
         return self._title
+
+    @property
+    def due_date(self):
+        return None
 
     @property
     def content(self):
