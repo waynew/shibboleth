@@ -6,12 +6,19 @@ from textwrap import dedent
 import rich.markdown as rm
 from textual import events, getters, log
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, HorizontalScroll, VerticalScroll
+from textual.containers import (
+    Container,
+    Horizontal,
+    HorizontalScroll,
+    Vertical,
+    VerticalGroup,
+    VerticalScroll,
+)
 from textual.events import Click
 from textual.message import Message
 from textual.reactive import reactive
 from textual.screen import ModalScreen
-from textual.widgets import Button, Footer, Header, Input, Label, Static, TextArea
+from textual.widgets import Button, Footer, Header, Input, Label, Rule, Static, TextArea
 
 import shibboleth
 
@@ -36,21 +43,45 @@ class CardBack(ModalScreen):
     ]
     task = reactive(None, recompose=True)
     comment_area = getters.query_one("#new_comment", TextArea)
+    comment_list = getters.query_one("#comments")
 
     def __init__(self, task):
         super().__init__()
         self.task = task
 
     def compose(self) -> ComposeResult:
-        with Horizontal():
-            yield Button("X", id="close")
-        with VerticalScroll():
-            yield Label(rm.Markdown("# " + self.task.fancy_title.lstrip("#")))
-            yield Static(rm.Markdown(self.task.content))
-            ta = TextArea(placeholder="Add a comment...", id="new_comment")
-            ta.focus()
-            yield ta
-            yield Button("Save", id="card_save")
+        with VerticalScroll(id="cardback-scroll"):
+            yield Label(
+                rm.Markdown("# " + self.task.fancy_title.lstrip("#")), classes="title"
+            )
+            yield Button("X", id="close", compact=True)
+
+            with VerticalGroup(id="cardback-info") as v:
+                v.border_title = "Honk"
+                yield Static(
+                    rm.Markdown(f"In list `{self.task.list}`"), classes="subheader"
+                )
+                desc = Static(rm.Markdown(self.task.description), classes="description")
+                desc.border_title = "Description"
+                yield desc
+
+                with VerticalGroup(id="comments") as v:
+                    v.border_title = "Comments"
+                    for comment in self.task.comments:
+                        comment_widget = Static(rm.Markdown(comment.content.strip()), classes="comment")
+                        comment_widget.border_title = str(comment.date)
+                        yield comment_widget
+
+
+                yield TextArea(placeholder="Add a comment", id="new_comment")
+
+                with Horizontal():
+                    yield Button("Save", id="card_save")
+            
+            with VerticalGroup():
+                yield Button('honk')
+                yield Button('bonk')
+
 
     def on_button_pressed(self, event: Button.Pressed):
         if event.button.id == "close":
@@ -65,18 +96,22 @@ class CardBack(ModalScreen):
 
     def action_add_comment(self) -> None:
         with self.task.path.open("a") as f:
+            now = datetime.now()
             f.write(
                 dedent(f"""
 
-            {datetime.now():%Y-%m-%d %H:%M:%S}
+            {now:%Y-%m-%d %H:%M:%S}
             {"-" * 19}
 
-            """)+
-            self.comment_area.text
+            """)
+                + self.comment_area.text
             )
-            self.mutate_reactive(CardBack.task)
+            #self.mutate_reactive(CardBack.task)
+        #self.call_later(lambda: self.query_one("#card_save").scroll_visible())
+        comment_widget = Static(rm.Markdown(self.comment_area.text), classes="comment")
+        comment_widget.border_title = str(now)
         self.comment_area.clear()
-        self.call_later(lambda: self.query_one("#card_save").scroll_visible())
+        self.comment_list.mount(comment_widget)
 
     def action_clean_dismiss(self) -> None:
         if self.comment_area.text:
@@ -196,7 +231,7 @@ class Shibboleth(App):
     BINDINGS = [("q", "quit", "Quit")]
 
     dragged_card = None
-    
+
     def __init__(self, *args, shibboleth, **kwargs):
         super().__init__(*args, **kwargs)
         self.shibboleth = shibboleth
@@ -204,7 +239,7 @@ class Shibboleth(App):
     def compose(self) -> ComposeResult:
         yield Header()
         with HorizontalScroll():
-            #for priority, tasks in shibboleth.tasks_by_priority():
+            # for priority, tasks in shibboleth.tasks_by_priority():
             for list_, tasks in self.shibboleth.tasks_by_list.items():
                 col = Column(id=f"col-{list_}")
                 col.tasks = tasks
@@ -246,12 +281,13 @@ class Shibboleth(App):
                     event.card.remove()
                     prev_list = prev_col.id[4:]
                     task.list = prev_list
-                    card = Card(task=task)  # rm.Markdown(task.fancy_title), name=task.path)
+                    card = Card(
+                        task=task
+                    )  # rm.Markdown(task.fancy_title), name=task.path)
                     prev_col.mount(card, before="Input")
                     card.focus()
                     card.scroll_visible()
             prev_col = column
-
 
     def on_card_move_right(self, event: Card.MoveRight) -> None:
         # TODO: make the rest of this like move left -W. Werner, 2025-10-30
@@ -265,7 +301,9 @@ class Shibboleth(App):
                     event.card.remove()
                     next_list = next_col.id[4:]
                     task.list = next_list
-                    card = Card(task=task)  # rm.Markdown(task.fancy_title), name=task.path)
+                    card = Card(
+                        task=task
+                    )  # rm.Markdown(task.fancy_title), name=task.path)
                     next_col.mount(card, before="Input")
                     card.focus()
                     card.scroll_visible()

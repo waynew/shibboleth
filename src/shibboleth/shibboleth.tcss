@@ -33,29 +33,84 @@ Column {
 CardBack {
     align: center middle;
 
-    Static {
-    }
 
-    TextArea {
-        min-height: 10;
-    }
-    
-    VerticalScroll {
-        max-width: 80;
-        background: #272727;
-        max-height: 80%;
+    #cardback-scroll {
+        border: solid blue;
+        #cardback-info { 
+            border: solid;
+
+            Static.description {
+                border: double;
+            }
+
+            #comments {
+
+                Static.comment {
+                    border: solid;
+                }
+            }
+            TextArea {
+                min-height: 5;
+                margin-top: 1;
+                margin-bottom: 1;
+            }
+
+        }
+/*
         min-height: 80%;
-    }
+        width: 80;
+        layout: grid;
+        grid-size: 2;
+        grid-columns: 60 20;
+        grid-rows: 3 100%;
 
-    Horizontal {
-        align-horizontal: right;
-        width: 80%;
-        max-width: 80;
-        height: auto;
-    }
 
-    Horizontal #close {
-        width: 2;
+
+
+
+        VerticalScroll {
+
+            max-width: 80;
+            background: #272727;
+            background: green;
+
+            #close {
+                border: solid;
+            }
+
+            .title {
+            }
+
+            Horizontal {
+                Button {
+                    margin-top: 1;
+                }
+            }
+
+            Vertical {
+                Button {
+                    border-top: solid;
+                }
+
+                #comment-list {
+                    border: double;
+                    background: blue;
+                    layout: vertical;
+                }
+
+                Static.comment {
+                    border: solid;
+                }
+            }
+
+            TextArea {
+                min-height: 10;
+                margin-top: 1;
+            }
+
+        }
+        
+        */
     }
 
 }

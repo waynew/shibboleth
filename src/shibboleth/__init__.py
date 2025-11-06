@@ -25,6 +25,11 @@ logger = logging.getLogger(__name__)
 __version__ = "25.11.0b1"
 
 
+COMMENT_HEADER_PATTERN = re.compile(
+    r"(?P<date>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\n-{19}\n\n", re.MULTILINE
+)
+
+
 class Shibboleth:
     def __init__(self):
         self.root_dir = Path(os.environ.get("SHIBBOLETH_DIR", ".")).absolute()
@@ -225,10 +230,10 @@ class Tags(list):
             listener(action=action, value=value)
 
     def append(self, item):
-        action = 'add'
+        action = "add"
         if item not in self:
             super().append(item)
-            action = 'nop add'
+            action = "nop add"
         self._broadcast(action=action, value=item)
 
     def extend(self, items):
@@ -238,12 +243,55 @@ class Tags(list):
 
     def sort(self):
         super().sort()
-        self._broadcast(action='sort', value=None)
+        self._broadcast(action="sort", value=None)
 
     def remove(self, value):
         if value in self:
             super().remove(value)
-            self._broadcast(action='remove', value=value)
+            self._broadcast(action="remove", value=value)
+
+
+class Comment:
+    def __init__(self, *, date, content):
+        self.date = date
+        self.content = content
+
+    def __eq__(self, other):
+        return self.date == other.date and self.content == other.content
+
+    def __repr__(self):
+        return f"Comment(date={self.date!r}, content={self.content!r}"
+
+    @classmethod
+    def parse_all(cls, content):
+        """
+        Produces an iterator of `Comment`s, one for each header found
+        in `content`. Anything prior to the first comment header is discarded.
+        """
+        while content:
+            comment_rest = Comment.parse(content)
+            print(comment_rest)
+            comment, content = comment_rest
+            yield comment
+
+    @classmethod
+    def parse(cls, content):
+        """
+        Produce a Comment and the remaining content, based on
+        the value in `content`.
+        """
+        match = re.search(COMMENT_HEADER_PATTERN, content)
+        if match:
+            date = datetime.strptime(match["date"], "%Y-%m-%d %H:%M:%S")
+            start = match.end(0)
+            next_header = COMMENT_HEADER_PATTERN.search(content, pos=start)
+            if not next_header:
+                return Comment(date=date, content=content[start:]), None
+            else:
+                end = next_header.start(0)
+                return Comment(date=date, content=content[start:end]), content[end:]
+        else:
+            return None, content
 
 
 class Task:
@@ -285,9 +333,9 @@ class Task:
     @classmethod
     def create_from_content(self, content):
         parsed = HEADER_PARSER.parsestr(content)
-        filename = Path(re.sub('[^A-Za-z0-9.]+', '-', parsed["Title"]))
+        filename = Path(re.sub("[^A-Za-z0-9.]+", "-", parsed["Title"]))
         if not filename.suffix:
-            filename = filename.with_suffix('.md')
+            filename = filename.with_suffix(".md")
 
         task = Task(filename)
         task.path.touch()
@@ -303,14 +351,14 @@ class Task:
     def _on_tag_update(self, action, value):
         if isinstance(value, list):
             for val in value:
-                if val in Task.lists and action == 'extend':
+                if val in Task.lists and action == "extend":
                     value = val
-                    action = 'add'
+                    action = "add"
 
         if value in Task.lists:
-            if action == 'add':
+            if action == "add":
                 self._list = value
-            elif action == 'remove':
+            elif action == "remove":
                 self._list = None
         self._rename()
 
@@ -324,6 +372,19 @@ class Task:
             parsed = HEADER_PARSER.parse(f)
         part = parsed.get_body(preferencelist=("plain", "html", "related"))
         return part.get_content()
+
+    @property
+    def description(self):
+        return re.split(
+            r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\n-{19}\n\n", self.content, maxsplit=1
+        )[0]
+
+    @property
+    def comments(self):
+        yield from Comment.parse_all(self.content)
+        # list(Comment.parse_all(self.content))
+        # for group in re.finditer(r"(?P<date>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\n-{19}\n\n(?P<content>.*)", self.content, re.MULTILINE | re.DOTALL):
+        #    yield Comment(date=group['date'], content=group['content'])
 
     @property
     def fancy_title(self):

@@ -1,6 +1,7 @@
 import functools
 import os
 import subprocess
+from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
 from unittest import mock
@@ -29,6 +30,7 @@ def restore_task_lists():
         None,
     ]
 
+
 @pytest.fixture(autouse=True)
 def to_tmp_path(tmp_path):
     curdir = os.getcwd()
@@ -38,7 +40,6 @@ def to_tmp_path(tmp_path):
         yield
     finally:
         os.chdir(curdir)
-
 
 
 @pytest.fixture
@@ -390,14 +391,18 @@ def test_shibboleth_tasks_by_list_should_use_lists_defined_in_dot_shibboleth_fil
 
 
 @pytest.mark.parametrize(
-    "lists, tags", [
-        ((), ('one', 'two', 'fnord', 'any')),
-        (('one', 'two','three'), ('nothing', 'to', 'see', 'here', 'four', '3', '1', '2')),
-        (('whatever', 'is', 'this', 'banana'), ('fnord', 'fnordy', 'fnordzilla')),
-    ]
+    "lists, tags",
+    [
+        ((), ("one", "two", "fnord", "any")),
+        (
+            ("one", "two", "three"),
+            ("nothing", "to", "see", "here", "four", "3", "1", "2"),
+        ),
+        (("whatever", "is", "this", "banana"), ("fnord", "fnordy", "fnordzilla")),
+    ],
 )
 def test_task_should_have_None_list_if_tags_not_in_any_Task_list(lists, tags, tmp_path):
-    task_file = (tmp_path / 'fnord.md')
+    task_file = tmp_path / "fnord.md"
     task_file.touch()
     shibboleth.Task.lists = lists
 
@@ -408,15 +413,21 @@ def test_task_should_have_None_list_if_tags_not_in_any_Task_list(lists, tags, tm
 
 
 @pytest.mark.parametrize(
-    "lists, tags", [
-        (('good',), ('good',)),
-        (('good'), ('one', 'good', 'two', 'fnord', 'any')),
-        (('one', 'two','three'), ('one', 'nothing', 'to', 'see', 'here', 'four', '3', '1', '2')),
-        (('whatever', 'is', 'this', 'banana'), ('is', 'fnord', 'fnordy', 'fnordzilla')),
-    ]
+    "lists, tags",
+    [
+        (("good",), ("good",)),
+        (("good"), ("one", "good", "two", "fnord", "any")),
+        (
+            ("one", "two", "three"),
+            ("one", "nothing", "to", "see", "here", "four", "3", "1", "2"),
+        ),
+        (("whatever", "is", "this", "banana"), ("is", "fnord", "fnordy", "fnordzilla")),
+    ],
 )
-def test_task_should_have_matching_list_if_tags_has_Task_list_in_tags(lists, tags, tmp_path):
-    task_file = (tmp_path / 'fnord.md')
+def test_task_should_have_matching_list_if_tags_has_Task_list_in_tags(
+    lists, tags, tmp_path
+):
+    task_file = tmp_path / "fnord.md"
     task_file.touch()
     shibboleth.Task.lists = lists
 
@@ -429,5 +440,132 @@ def test_task_should_have_matching_list_if_tags_has_Task_list_in_tags(lists, tag
 
 
 def test_task_from_content_should_have_md_extension():
-    task = shibboleth.Task.create_from_content('Title: something silly')
+    task = shibboleth.Task.create_from_content("Title: something silly")
     assert task.filename == "something-silly[inbox].md"
+
+
+@pytest.mark.parametrize(
+    "raw,expected_description,expected_comments",
+    [
+        [
+            dedent(
+                """
+                Title: something silly
+                """
+            ).lstrip(),
+            "",
+            [],
+        ],
+        [
+            dedent(
+                """
+            Title: something silly
+
+            This is a description
+
+
+
+
+            2025-11-02 10:27:05
+            -------------------
+
+            This is the first *comment*.
+
+            Let's go!
+
+            2025-11-02 10:28:56
+            -------------------
+
+            This one only has one line
+
+        """
+            ).lstrip(),
+            "This is a description\n\n\n\n\n",
+            [
+                shibboleth.Comment(
+                    date=datetime(2025, 11, 2, 10, 27, 5),
+                    content="This is the first *comment*.\n\nLet's go!\n\n",
+                ),
+                shibboleth.Comment(
+                    date=datetime(2025, 11, 2, 10, 28, 56),
+                    content="This one only has one line\n\n",
+                ),
+            ],
+        ],
+    ],
+)
+def test_task_description_and_comments_should_be_correctly_set(
+    raw, expected_description, expected_comments
+):
+    task = shibboleth.Task.create_from_content(raw)
+    assert task.description == expected_description
+    assert list(task.comments) == expected_comments
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        dedent("""
+            """),
+        dedent("""
+            Nothing to see here.
+
+            Nothing at all.
+
+            Who cares at all? Bleep bloop whatever.
+            """),
+    ],
+)
+def test_Comment_parse_should_return_None_when_no_header(raw):
+    comment, rest = shibboleth.Comment.parse(raw)
+    assert comment == None
+    assert rest == raw
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        dedent(
+            """
+            Ignore me
+
+            2021-01-02 03:04:05
+            -------------------
+
+            Fnord
+            Fnord
+
+            """
+        ),
+        dedent(
+            """
+            2021-01-02 03:04:05
+            -------------------
+
+            Fnord
+            Fnord
+
+            """
+        ),
+        dedent(
+            """
+            Hello beans
+
+            2021-01-02 03:04:05
+            -------------------
+
+            Fnord
+            Fnord
+
+            2021-01-02 03:04:05
+            -------------------
+
+            ignore me, too
+            """
+        ),
+    ],
+)
+def test_Comment_parse_should_return_first_segment(raw):
+    comment, rest = shibboleth.Comment.parse(raw)
+    assert comment.date == datetime(2021, 1, 2, 3, 4, 5)
+    assert comment.content == "Fnord\nFnord\n\n"
