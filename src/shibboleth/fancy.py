@@ -10,6 +10,7 @@ from textual.containers import (
     Container,
     Horizontal,
     HorizontalScroll,
+    Grid,
     Vertical,
     VerticalGroup,
     VerticalScroll,
@@ -51,36 +52,37 @@ class CardBack(ModalScreen):
 
     def compose(self) -> ComposeResult:
         with VerticalScroll(id="cardback-scroll"):
-            yield Label(
-                rm.Markdown("# " + self.task.fancy_title.lstrip("#")), classes="title"
-            )
-            yield Button("X", id="close", compact=True)
-
-            with VerticalGroup(id="cardback-info") as v:
-                v.border_title = "Honk"
-                yield Static(
-                    rm.Markdown(f"In list `{self.task.list}`"), classes="subheader"
+            with VerticalGroup(id='bonk'):
+                yield Label(
+                    rm.Markdown("# " + self.task.fancy_title.lstrip("#")), classes="title"
                 )
-                desc = Static(rm.Markdown(self.task.description), classes="description")
-                desc.border_title = "Description"
-                yield desc
+                yield Button("X", id="close", compact=True)
 
-                with VerticalGroup(id="comments") as v:
-                    v.border_title = "Comments"
-                    for comment in self.task.comments:
-                        comment_widget = Static(rm.Markdown(comment.content.strip()), classes="comment")
-                        comment_widget.border_title = str(comment.date)
-                        yield comment_widget
+                with VerticalGroup(id="cardback-info") as v:
+                    v.border_title = "Honk"
+                    yield Static(
+                        rm.Markdown(f"In list `{self.task.list}`"), classes="subheader"
+                    )
+                    desc = Static(rm.Markdown(self.task.description), classes="description")
+                    desc.border_title = "Description"
+                    yield desc
+
+                    with VerticalGroup(id="comments") as v:
+                        v.border_title = "Comments"
+                        for comment in self.task.comments:
+                            comment_widget = Static(rm.Markdown(comment.content.strip()), classes="comment")
+                            comment_widget.border_title = str(comment.date)
+                            yield comment_widget
 
 
-                yield TextArea(placeholder="Add a comment", id="new_comment")
+                    yield TextArea(placeholder="Add a comment", id="new_comment")
 
-                with Horizontal():
-                    yield Button("Save", id="card_save")
-            
-            with VerticalGroup():
-                yield Button('honk')
-                yield Button('bonk')
+                    with Horizontal():
+                        yield Button("Save", id="card_save")
+                
+                with VerticalGroup():
+                    yield Button('honk')
+                    yield Button('bonk')
 
 
     def on_button_pressed(self, event: Button.Pressed):

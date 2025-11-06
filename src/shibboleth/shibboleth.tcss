@@ -30,31 +30,39 @@ Column {
     }
 }
 
+
 CardBack {
     align: center middle;
 
 
     #cardback-scroll {
         border: solid blue;
-        #cardback-info { 
-            border: solid;
+        width: 80;
 
-            Static.description {
-                border: double;
-            }
+        VerticalGroup#bonk {
+            layout: grid;
+            grid-size: 2 2;
+            grid-columns: 60 20;
 
-            #comments {
+            #cardback-info { 
 
-                Static.comment {
-                    border: solid;
+                Static.description {
+                    border: double;
                 }
-            }
-            TextArea {
-                min-height: 5;
-                margin-top: 1;
-                margin-bottom: 1;
-            }
 
+                #comments {
+
+                    Static.comment {
+                        border: solid;
+                    }
+                }
+                TextArea {
+                    min-height: 5;
+                    margin-top: 1;
+                    margin-bottom: 1;
+                }
+
+            }
         }
 /*
         min-height: 80%;
