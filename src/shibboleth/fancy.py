@@ -21,6 +21,7 @@ from textual.message import Message
 from textual.reactive import reactive
 from textual.screen import ModalScreen
 from textual.widgets import Button, Footer, Header, Input, Label, Rule, Static, TextArea
+from textual.css.query import NoMatches
 
 import shibboleth
 
@@ -203,12 +204,6 @@ class Card(Static, can_focus=True):
 
 
 class Column(Static):
-    BINDINGS = [
-        ("down", "next_card", "Next Card"),
-        ("up", "prev_card", "Previous Card"),
-        ("right", "next_column", "Next Column"),
-        ("left", "previous_column", "Previous Column"),
-    ]
     tasks = reactive([], recompose=True)
     DEFAULT_CSS = """
         Column {
@@ -233,24 +228,24 @@ class Column(Static):
 
     def compose(self) -> ComposeResult:
         yield Static(self.id[4:])
-        with VerticalScroll(can_focus=False):
+        with VerticalScroll(can_focus=False) as v:
+            v.BINDINGS.clear()
+            v.refresh_bindings()
             for task in self.tasks:
                 yield Card(task=task)  # rm.Markdown(task.fancy_title), name=task.path)
             yield Input(placeholder="New card...")
 
-    def action_next_card(self) -> None:
-        if not self.app.focused == self.query(Card).last():
-            self.screen.focus_next(Card)
-
-    def action_prev_card(self) -> None:
-        if not self.app.focused == self.query(Card).first():
-            self.screen.focus_previous(Card)
-
-    def action_next_column(self) -> None:
-        self.post_message(self.NextColumn(self))
-
-    def action_previous_column(self) -> None:
-        self.post_message(self.PreviousColumn(self))
+    def on_key(self, event: events.Key) -> None:
+        if event.key == 'down':
+            if not self.app.focused == self.query(Card).last():
+                self.screen.focus_next(Card)
+        elif event.key == 'up':
+            if not self.app.focused == self.query(Card).first():
+                self.screen.focus_previous(Card)
+        elif event.key == 'right':
+            self.post_message(self.NextColumn(self))
+        elif event.key == 'left':
+            self.post_message(self.PreviousColumn(self))
 
 
 class Shibboleth(App):
@@ -369,29 +364,34 @@ class Shibboleth(App):
                     widget.mount(column_card, before="Input")
 
     def on_column_next_column(self, message: Column.NextColumn):
-        self.screen.focus_next(Card)
-        return
-
-        col_id = message.current.id
-        priority = col_id[4:]
-        if priority in PRIORITIES:
-            next_priority = PRIORITIES[priority]["next"]
-            if next_priority is not None:
-                next_col = self.query_one(f"#col-{next_priority}", Column)
-                next_col.focus(Card)
+        list = message.current.id[4:]
+        try:
+            index = shibboleth.Task.lists.index(list)+1
+            while True:
+                try:
+                    next = shibboleth.Task.lists[index]
+                    f = self.query(f"#col-{next} Card").first()
+                    f.focus()
+                    return
+                except NoMatches:
+                    index += 1
+        except ValueError:
+            return
 
     def on_column_previous_column(self, message: Column.PreviousColumn):
-        self.screen.focus_previous(Card)
-        return
-        col_id = message.current.id
-        priority = col_id[4:]
-        if priority in PRIORITIES:
-            prev_priority = PRIORITIES[priority]["prev"]
-            if prev_priority is not None:
-                prev_col = self.query(f"#col-{prev_priority}", Column)
-                prev_col.query(Card).first().focus()
-                prev_col.focus(Card)
-            self.screen.focus_next(Card)
+        list = message.current.id[4:]
+        try:
+            index = shibboleth.Task.lists.index(list)-1
+            while True:
+                try:
+                    next = shibboleth.Task.lists[index]
+                    f = self.query(f"#col-{next} Card").first()
+                    f.focus()
+                    return
+                except NoMatches:
+                    index -= 1
+        except ValueError:
+            return
 
     def update_tasks(self):
         for list_, tasks in self.shibboleth.tasks_by_list.items():
