@@ -46,7 +46,7 @@ CardBack {
 
             #cardback-info { 
 
-                Static.description {
+                .description {
                     border: double;
                 }
 

@@ -16,12 +16,13 @@ from textual.containers import (
     VerticalGroup,
     VerticalScroll,
 )
+from textual.css.query import NoMatches
 from textual.events import Click
 from textual.message import Message
 from textual.reactive import reactive
 from textual.screen import ModalScreen
+from textual.widget import Widget
 from textual.widgets import Button, Footer, Header, Input, Label, Rule, Static, TextArea
-from textual.css.query import NoMatches
 
 import shibboleth
 
@@ -36,6 +37,32 @@ PRIORITIES = {
     "6-waiting": {"prev": "5-someday", "next": "done"},
     "done": {"prev": "6-waiting", "next": None},
 }
+
+
+class DoubleClickMarkdownEditor(Static):
+    description = getters.query_one("#description")
+
+    def __init__(self, *args, content, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.content = content
+
+    def compose(self) -> ComposeResult:
+        yield Static(rm.Markdown(self.content), id="description")
+
+    def on_click(self, event: Click):
+        if event.chain == 2:
+            self.description.remove()
+            ta = TextArea(self.content)
+            ta.height = 'auto'
+            self.mount(
+                Vertical(
+                    ta,
+                    Horizontal(
+                        Button("Cancel"),
+                        Button("Save"),
+                    ),
+                )
+            )
 
 
 class CardBack(ModalScreen):
@@ -81,8 +108,13 @@ class CardBack(ModalScreen):
                             any_tags = True
                         if not any_tags:
                             yield Label("None", classes="no-tags")
-                    desc = Static(
-                        rm.Markdown(self.task.description), classes="description"
+                    #                   desc = Static(
+                    #                       rm.Markdown(self.task.description), classes="description"
+                    #                   )
+                    #                   desc.border_title = "Description"
+                    #                   yield desc
+                    desc = DoubleClickMarkdownEditor(
+                        content=self.task.description, classes="description"
                     )
                     desc.border_title = "Description"
                     yield desc
@@ -236,15 +268,15 @@ class Column(Static):
             yield Input(placeholder="New card...")
 
     def on_key(self, event: events.Key) -> None:
-        if event.key == 'down':
+        if event.key == "down":
             if not self.app.focused == self.query(Card).last():
                 self.screen.focus_next(Card)
-        elif event.key == 'up':
+        elif event.key == "up":
             if not self.app.focused == self.query(Card).first():
                 self.screen.focus_previous(Card)
-        elif event.key == 'right':
+        elif event.key == "right":
             self.post_message(self.NextColumn(self))
-        elif event.key == 'left':
+        elif event.key == "left":
             self.post_message(self.PreviousColumn(self))
 
 
@@ -366,7 +398,7 @@ class Shibboleth(App):
     def on_column_next_column(self, message: Column.NextColumn):
         list = message.current.id[4:]
         try:
-            index = shibboleth.Task.lists.index(list)+1
+            index = shibboleth.Task.lists.index(list) + 1
             while True:
                 try:
                     next = shibboleth.Task.lists[index]
@@ -381,7 +413,7 @@ class Shibboleth(App):
     def on_column_previous_column(self, message: Column.PreviousColumn):
         list = message.current.id[4:]
         try:
-            index = shibboleth.Task.lists.index(list)-1
+            index = shibboleth.Task.lists.index(list) - 1
             while True:
                 try:
                     next = shibboleth.Task.lists[index]

@@ -54,10 +54,19 @@ def tmp_path_os_environ(tmp_path):
         {
             "config": {
                 "lists": ["1-cool", "2-old", "3-done"],
+                "tag_colors": {
+                    "rouge": "red",
+                    "bleu": "rgb(0,0,255)",
+                    "verdant": "#00ff00",
+                },
             },
             "raw": dedent(
                 """
                     lists = ["1-cool", "2-old", "3-done"]
+                    [tag_colors]
+                    rouge = "red"
+                    bleu = "rgb(0,0,255)"
+                    verdant = "#00ff00"
                     """
             ).encode(),
         },
