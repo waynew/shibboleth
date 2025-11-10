@@ -22,7 +22,7 @@ import tomllib
 
 logger = logging.getLogger(__name__)
 
-__version__ = "25.11.0b3"
+__version__ = "25.11.0"
 
 
 COMMENT_HEADER_PATTERN = re.compile(
