@@ -250,6 +250,14 @@ TODOs
 CHANGELOG
 ---------
 
+## [25.11.1]
+
+### Added
+
+- Cards can now have a sort order added to them with shift+up/shift+down.
+  Currently the sort order will not be added to the cards until the first time
+  a card is shifted in the list. There are probably bugs.
+
 ## [25.10.5]
 
 ### Fixed
