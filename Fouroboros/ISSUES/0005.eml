@@ -4,7 +4,7 @@ X-Fouroboros-Type: issue
 Message-ID: 0005@awesome-project
 Date: Sat, 25 Oct 2025 21:54:38 -0000
 Subject: Sort order
-X-Fouroboros-Status: in_progress
+X-Fouroboros-Status: closed
 
 We have priority for the columns, but we probably want something like `sort:N` in the tags.
 
@@ -12,3 +12,8 @@ From: Wayne Werner <wayne@waynewerner.com>
 Date: Tue, 11 Nov 2025 19:38:48 -0000
 
 Okay let's work on this.
+
+From: Wayne Werner <wayne@waynewerner.com>
+Date: Wed, 12 Nov 2025 04:02:43 -0000
+
+Alrighty, we got this working!king!

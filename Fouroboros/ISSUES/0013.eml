@@ -1,9 +1,10 @@
 From: Wayne Werner <wayne@waynewerner.com>
 To: None
 X-Fouroboros-Type: issue
-Message-ID: 019a7474-a4f3-71bc-a481-2dc6d48ed2c8@awesome-project
+Message-ID: 0013@awesome-project
 Date: Tue, 11 Nov 2025 19:46:32 -0000
 Subject: [Feature] add hidden tags for tasks
+X-Fouroboros-Status: open
 
 Right now any tag will show up in the UI but there are some that we probably don't *need* to show.
 
