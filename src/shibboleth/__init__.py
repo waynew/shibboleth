@@ -270,8 +270,9 @@ class Comment:
         """
         while content:
             comment_rest = Comment.parse(content)
-            print(comment_rest)
             comment, content = comment_rest
+            if comment is None:
+                break
             yield comment
 
     @classmethod
@@ -291,7 +292,7 @@ class Comment:
                 end = next_header.start(0)
                 return Comment(date=date, content=content[start:end]), content[end:]
         else:
-            return None, content
+            return None, ''
 
 
 class Task:
@@ -367,6 +368,17 @@ class Task:
         return self._title
 
     @property
+    def order(self):
+        for tag in self.tags:
+            if tag.startswith('sort:'):
+                sort = tag.partition(':')[-1]
+                try:
+                    return int(sort)
+                except ValueError:
+                    return sort
+        return None
+
+    @property
     def due_date(self):
         return None
 
@@ -382,6 +394,41 @@ class Task:
         return re.split(
             r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\n-{19}\n\n", self.content, maxsplit=1
         )[0]
+
+    @description.setter
+    def description(self, value):
+        with self.path.open('r+') as f:
+            headers = []
+            prev_line = None
+            for line in f:
+                headers.append(line[:-1])
+                if line == '\n':
+                    break
+                prev_line = line
+
+            comments = []
+            line = prev_line.strip()
+            for next_line in f:
+                next_line = next_line.strip()
+                print('Line:', line)
+                if re.match(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", line) and len(next_line) == 19 and next_line.replace('-', '') == '':
+                    comments.append('')
+                    comments.append(line)
+                    comments.append(next_line)
+                    break
+                line = next_line
+
+            comments.extend(line.strip() for line in f)
+            data = '\n'.join(headers + [value] + comments)
+            print(repr(data))
+            print('Le data\n', data)
+            print("headers", headers)
+            print('value', value)
+            print('comments', comments)
+
+            f.seek(0)
+            f.write(data+'\n')
+            f.truncate()
 
     @property
     def comments(self):

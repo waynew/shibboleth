@@ -42,6 +42,11 @@ PRIORITIES = {
 class DoubleClickMarkdownEditor(Static):
     description = getters.query_one("#description")
 
+    class ContentUpdated(Message):
+        def __init__(self, new_content):
+            super().__init__()
+            self.new_content = new_content
+
     def __init__(self, *args, content, **kwargs):
         super().__init__(*args, **kwargs)
         self.content = content
@@ -52,17 +57,42 @@ class DoubleClickMarkdownEditor(Static):
     def on_click(self, event: Click):
         if event.chain == 2:
             self.description.remove()
-            ta = TextArea(self.content)
+            ta = TextArea(self.content, id="description")
             ta.height = 'auto'
             self.mount(
                 Vertical(
                     ta,
                     Horizontal(
-                        Button("Cancel"),
-                        Button("Save"),
+                        Button("Cancel", id="cancel"),
+                        Button("Save", id="save"),
                     ),
                 )
             )
+            ta.focus()
+
+    def recompose(self):
+        self.remove_children()
+        self.mount(Static(rm.Markdown(self.content), id="description"))
+
+    def content_updated(self):
+        description = self.query_one("#description").text
+        self.content = description
+        self.recompose()
+        self.post_message(self.ContentUpdated(new_content=description))
+
+    def on_key(self, event: events.Key) -> None:
+        if event.key == "ctrl+enter":
+            event.stop()
+            self.content_updated()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "save":
+            event.stop()
+            self.content_updated()
+        elif event.button.id == "cancel":
+            event.stop()
+            self.recompose()
+
 
 
 class CardBack(ModalScreen):
@@ -99,20 +129,18 @@ class CardBack(ModalScreen):
                         rm.Markdown(f"Due Date: `{self.task.due_date or 'none'}` ")
                     )
                     with HorizontalGroup(id="tag-list"):
+                        log.info("Tags", self.task.tags)
                         yield Label("Tags:")
                         any_tags = False
+                        log("Tags", self.task.tags)
                         for tag in self.task.tags:
+                            log("Tag", tag)
                             if tag == self.task.list:
                                 continue
                             yield Label(tag, classes="tag")
                             any_tags = True
                         if not any_tags:
                             yield Label("None", classes="no-tags")
-                    #                   desc = Static(
-                    #                       rm.Markdown(self.task.description), classes="description"
-                    #                   )
-                    #                   desc.border_title = "Description"
-                    #                   yield desc
                     desc = DoubleClickMarkdownEditor(
                         content=self.task.description, classes="description"
                     )
@@ -148,6 +176,10 @@ class CardBack(ModalScreen):
             self.action_clean_dismiss()
         elif event.button.id == "card_save":
             self.action_add_comment()
+
+    def on_double_click_markdown_editor_content_updated(self, event: DoubleClickMarkdownEditor.ContentUpdated) -> None:
+        log("Hey there", event.new_content)
+        self.task.description = event.new_content
 
     def action_external_edit(self) -> None:
         with self.app.suspend():
@@ -208,6 +240,8 @@ class Card(Static, can_focus=True):
     class MoveRight(CardMessage): ...
 
     class MouseMoving(CardMessage): ...
+    class MoveDown(CardMessage): ...
+    class MoveUp(CardMessage): ...
 
     def __init__(self, task, *args, **kwargs):
         super().__init__(rm.Markdown(task.fancy_title), *args, **kwargs)
@@ -233,6 +267,12 @@ class Card(Static, can_focus=True):
     def on_mouse_move(self, event: events.MouseEvent):
         if event.button == 1:
             self.post_message(self.MouseMoving(task=self.task, card=self))
+
+    def on_key(self, event: events.Key) -> None:
+        if event.key == "shift+down":
+            self.post_message(self.MoveDown(task=self.task, card=self))
+        elif event.key == "shift+up":
+            self.post_message(self.MoveUp(task=self.task, card=self))
 
 
 class Column(Static):
@@ -260,11 +300,26 @@ class Column(Static):
 
     def compose(self) -> ComposeResult:
         yield Static(self.id[4:])
+        def by_sort_order(tasks):
+            with_order = []
+            max = 1e8
+            for task in tasks:
+                for tag in task.tags:
+                    tag, _, val = tag.partition(':')
+                    if tag == 'sort':
+                        val = int(val)
+                        with_order.append((val, task))
+                        break
+                else:
+                    with_order.append((max, task))
+                    max += 1
+            return sorted(with_order)
+                        
         with VerticalScroll(can_focus=False) as v:
             v.BINDINGS.clear()
             v.refresh_bindings()
-            for task in self.tasks:
-                yield Card(task=task)  # rm.Markdown(task.fancy_title), name=task.path)
+            for _, task in by_sort_order(self.tasks):
+                yield Card(task=task)
             yield Input(placeholder="New card...")
 
     def on_key(self, event: events.Key) -> None:
@@ -278,6 +333,37 @@ class Column(Static):
             self.post_message(self.NextColumn(self))
         elif event.key == "left":
             self.post_message(self.PreviousColumn(self))
+
+    def on_card_move_down(self, event: Card.MoveDown) -> None:
+        # TODO: Add the sort tag to the cards here, swapping their numbers if they exist. -W. Werner, 2025-11-11
+        try:
+            next_card = None
+            vs = self.query_one(VerticalScroll)
+            card_list = vs.children
+            for i, child in enumerate(card_list):
+                if child is event.card:
+                    next_card = card_list[i+1]
+                if not 
+            log("Next card", next_card)
+            vs.move_child(event.card, after=next_card)
+        except IndexError as e:
+            log("No next card")
+
+    def on_card_move_up(self, event: Card.MoveUp) -> None:
+        try:
+            prev_card = None
+            vs = self.query_one(VerticalScroll)
+            card_list = vs.children
+            for i, child in enumerate(card_list):
+                if child is event.card:
+                    prev_card = card_list[i-1]
+            log("Next card", prev_card)
+            vs.move_child(event.card, before=prev_card)
+        except IndexError as e:
+            log("No prev card")
+
+
+
 
 
 class Shibboleth(App):

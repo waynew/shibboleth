@@ -34,15 +34,19 @@ Column {
 CardBack {
     align: center middle;
 
-
     #cardback-scroll {
         border: solid blue;
         width: 80;
 
         #cardback-grid {
-            layout: grid;
             grid-size: 2 2;
             grid-columns: 60 20;
+
+            .description {
+                TextArea {
+                    max-height: 30;
+                }
+            }
 
             #cardback-info { 
 
@@ -54,10 +58,10 @@ CardBack {
                     border: solid yellow;
                     align-vertical: middle;
 
-                    Label.tags {
+                    Label.tag {
                         background: green;
-                        border: lime;
                         color: white;
+                        margin-left: 1;
                     }
                 }
 

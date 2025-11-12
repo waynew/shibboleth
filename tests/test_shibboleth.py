@@ -528,7 +528,7 @@ def test_task_description_and_comments_should_be_correctly_set(
 def test_Comment_parse_should_return_None_when_no_header(raw):
     comment, rest = shibboleth.Comment.parse(raw)
     assert comment == None
-    assert rest == raw
+    assert rest == ''
 
 
 @pytest.mark.parametrize(
@@ -578,3 +578,136 @@ def test_Comment_parse_should_return_first_segment(raw):
     comment, rest = shibboleth.Comment.parse(raw)
     assert comment.date == datetime(2021, 1, 2, 3, 4, 5)
     assert comment.content == "Fnord\nFnord\n\n"
+        
+
+
+def test_task_comments_with_no_comments_should_return_empty_list():
+    task = shibboleth.Task.create_from_content(content=dedent(
+        '''
+        Title: what the what?
+
+        This has a description
+
+        but no comments
+        '''.lstrip()
+        ))
+
+    comments = list(task.comments)
+    assert comments == []
+
+
+@pytest.mark.parametrize(
+    "raw,expected", [
+        [dedent(
+            '''
+            Title: Wonk
+            '''
+        ).lstrip(),
+         dedent(
+            '''
+            Title: Wonk
+
+            Fnord
+            '''
+        ).lstrip(),
+         ],
+        [dedent(
+            '''
+            Title: Wonk
+
+            Silly description
+            '''
+        ).lstrip(),
+         dedent(
+            '''
+            Title: Wonk
+
+            Fnord
+            '''
+        ).lstrip(),
+         ],
+        [dedent(
+            '''
+            Title: Wonk
+
+            Some description
+
+            With
+
+            - more
+            - than
+            - one
+            - line
+
+            ---
+
+            And some other stuff
+
+            2025-11-10 14:28:37
+            -------------------
+
+            Beep beep! I'm a sheep!
+
+            '''
+        ).lstrip(),
+         dedent(
+            '''
+            Title: Wonk
+
+            Fnord
+
+            2025-11-10 14:28:37
+            -------------------
+
+            Beep beep! I'm a sheep!
+
+            '''
+        ).lstrip(),
+         ],
+        ]
+)
+def test_setting_task_description_should_only_update_the_description(raw, expected):
+    task = shibboleth.Task.create_from_content(content=raw)
+    task.description = "Fnord"
+
+    actual = task.path.read_text()
+    assert actual == expected
+
+
+def test_task_with_no_sort_tag_should_have_order_of_None():
+    task = shibboleth.Task.create_from_content(content=dedent(
+        '''
+        Title: Hi
+        '''
+        ).lstrip())
+
+    assert task.order is None
+
+
+@pytest.mark.parametrize(
+    'tag,expected_order', [
+        ('sort:1', 1),
+        ('sort:100', 100),
+        ('sort:-1', -1),
+        ('sort:100000000000000', 100000000000000),
+        ])
+def test_task_with_sort_tag_should_have_order_of_int_value(tag, expected_order):
+    task = shibboleth.Task.create_from_content(content=dedent(
+        '''
+        Title: Hi
+        '''
+        ).lstrip())
+    task.tags.append(tag)
+
+    assert task.order == expected_order
+
+
+def test_task_with_sort_tag_not_int_should_return_str_order():
+    task = shibboleth.Task.create_from_content(content=dedent(
+        '''
+        Title: fnord
+        '''
+    ).lstrip())
+    task.tags.append('sort:fnord')
+
+    assert task.order == 'fnord'
