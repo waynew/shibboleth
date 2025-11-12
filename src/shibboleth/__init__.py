@@ -378,6 +378,15 @@ class Task:
                     return sort
         return None
 
+    @order.setter
+    def order(self, value):
+        for tag in self.tags:
+            if tag.startswith('sort:'):
+                self.tags.remove(tag)
+                break
+        self.tags.append(f'sort:{value}')
+
+
     @property
     def due_date(self):
         return None

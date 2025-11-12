@@ -339,13 +339,16 @@ class Column(Static):
         try:
             next_card = None
             vs = self.query_one(VerticalScroll)
-            card_list = vs.children
+            card_list = vs.query(Card)
             for i, child in enumerate(card_list):
                 if child is event.card:
                     next_card = card_list[i+1]
-                if not 
+                log(child.task)
+                if child.task.order is None:
+                    child.task.order = i+1
             log("Next card", next_card)
             vs.move_child(event.card, after=next_card)
+            event.task.order, next_card.task.order = next_card.task.order, event.task.order
         except IndexError as e:
             log("No next card")
 
@@ -353,12 +356,15 @@ class Column(Static):
         try:
             prev_card = None
             vs = self.query_one(VerticalScroll)
-            card_list = vs.children
+            card_list = vs.query(Card)
             for i, child in enumerate(card_list):
                 if child is event.card:
                     prev_card = card_list[i-1]
+                if child.task.order is None:
+                    child.task.order = i+1
             log("Next card", prev_card)
             vs.move_child(event.card, before=prev_card)
+            event.task.order, prev_card.task.order = prev_card.task.order, event.task.order
         except IndexError as e:
             log("No prev card")
 

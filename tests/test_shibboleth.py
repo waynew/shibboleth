@@ -711,3 +711,21 @@ def test_task_with_sort_tag_not_int_should_return_str_order():
     task.tags.append('sort:fnord')
 
     assert task.order == 'fnord'
+
+
+@pytest.mark.parametrize(
+    "order", [1,2,5,"three-sir"]
+)
+def test_setting_task_order_should_update_tag(order):
+    task = shibboleth.Task.create_from_content(content=dedent(
+        '''
+        Title: fnord
+        '''
+    ).lstrip())
+
+    task.order = "fnord"
+
+    task.order = order
+    expected_tag = f"sort:{order}"
+
+    assert task.order == order
