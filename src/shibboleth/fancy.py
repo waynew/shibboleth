@@ -58,7 +58,7 @@ class DoubleClickMarkdownEditor(Static):
         if event.chain == 2:
             self.description.remove()
             ta = TextArea(self.content, id="description")
-            ta.height = 'auto'
+            ta.height = "auto"
             self.mount(
                 Vertical(
                     ta,
@@ -92,7 +92,6 @@ class DoubleClickMarkdownEditor(Static):
         elif event.button.id == "cancel":
             event.stop()
             self.recompose()
-
 
 
 class CardBack(ModalScreen):
@@ -177,7 +176,9 @@ class CardBack(ModalScreen):
         elif event.button.id == "card_save":
             self.action_add_comment()
 
-    def on_double_click_markdown_editor_content_updated(self, event: DoubleClickMarkdownEditor.ContentUpdated) -> None:
+    def on_double_click_markdown_editor_content_updated(
+        self, event: DoubleClickMarkdownEditor.ContentUpdated
+    ) -> None:
         log("Hey there", event.new_content)
         self.task.description = event.new_content
 
@@ -240,7 +241,9 @@ class Card(Static, can_focus=True):
     class MoveRight(CardMessage): ...
 
     class MouseMoving(CardMessage): ...
+
     class MoveDown(CardMessage): ...
+
     class MoveUp(CardMessage): ...
 
     def __init__(self, task, *args, **kwargs):
@@ -300,13 +303,14 @@ class Column(Static):
 
     def compose(self) -> ComposeResult:
         yield Static(self.id[4:])
+
         def by_sort_order(tasks):
             with_order = []
             max = 1e8
             for task in tasks:
                 for tag in task.tags:
-                    tag, _, val = tag.partition(':')
-                    if tag == 'sort':
+                    tag, _, val = tag.partition(":")
+                    if tag == "sort":
                         val = int(val)
                         with_order.append((val, task))
                         break
@@ -314,7 +318,7 @@ class Column(Static):
                     with_order.append((max, task))
                     max += 1
             return sorted(with_order)
-                        
+
         with VerticalScroll(can_focus=False) as v:
             v.BINDINGS.clear()
             v.refresh_bindings()
@@ -342,13 +346,16 @@ class Column(Static):
             card_list = vs.query(Card)
             for i, child in enumerate(card_list):
                 if child is event.card:
-                    next_card = card_list[i+1]
+                    next_card = card_list[i + 1]
                 log(child.task)
                 if child.task.order is None:
-                    child.task.order = i+1
+                    child.task.order = i + 1
             log("Next card", next_card)
             vs.move_child(event.card, after=next_card)
-            event.task.order, next_card.task.order = next_card.task.order, event.task.order
+            event.task.order, next_card.task.order = (
+                next_card.task.order,
+                event.task.order,
+            )
         except IndexError as e:
             log("No next card")
 
@@ -359,17 +366,17 @@ class Column(Static):
             card_list = vs.query(Card)
             for i, child in enumerate(card_list):
                 if child is event.card:
-                    prev_card = card_list[i-1]
+                    prev_card = card_list[i - 1]
                 if child.task.order is None:
-                    child.task.order = i+1
+                    child.task.order = i + 1
             log("Next card", prev_card)
             vs.move_child(event.card, before=prev_card)
-            event.task.order, prev_card.task.order = prev_card.task.order, event.task.order
+            event.task.order, prev_card.task.order = (
+                prev_card.task.order,
+                event.task.order,
+            )
         except IndexError as e:
             log("No prev card")
-
-
-
 
 
 class Shibboleth(App):

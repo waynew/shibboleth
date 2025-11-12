@@ -292,7 +292,7 @@ class Comment:
                 end = next_header.start(0)
                 return Comment(date=date, content=content[start:end]), content[end:]
         else:
-            return None, ''
+            return None, ""
 
 
 class Task:
@@ -370,8 +370,8 @@ class Task:
     @property
     def order(self):
         for tag in self.tags:
-            if tag.startswith('sort:'):
-                sort = tag.partition(':')[-1]
+            if tag.startswith("sort:"):
+                sort = tag.partition(":")[-1]
                 try:
                     return int(sort)
                 except ValueError:
@@ -381,11 +381,10 @@ class Task:
     @order.setter
     def order(self, value):
         for tag in self.tags:
-            if tag.startswith('sort:'):
+            if tag.startswith("sort:"):
                 self.tags.remove(tag)
                 break
-        self.tags.append(f'sort:{value}')
-
+        self.tags.append(f"sort:{value}")
 
     @property
     def due_date(self):
@@ -406,12 +405,12 @@ class Task:
 
     @description.setter
     def description(self, value):
-        with self.path.open('r+') as f:
+        with self.path.open("r+") as f:
             headers = []
             prev_line = None
             for line in f:
                 headers.append(line[:-1])
-                if line == '\n':
+                if line == "\n":
                     break
                 prev_line = line
 
@@ -419,24 +418,28 @@ class Task:
             line = prev_line.strip()
             for next_line in f:
                 next_line = next_line.strip()
-                print('Line:', line)
-                if re.match(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", line) and len(next_line) == 19 and next_line.replace('-', '') == '':
-                    comments.append('')
+                print("Line:", line)
+                if (
+                    re.match(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", line)
+                    and len(next_line) == 19
+                    and next_line.replace("-", "") == ""
+                ):
+                    comments.append("")
                     comments.append(line)
                     comments.append(next_line)
                     break
                 line = next_line
 
             comments.extend(line.strip() for line in f)
-            data = '\n'.join(headers + [value] + comments)
+            data = "\n".join(headers + [value] + comments)
             print(repr(data))
-            print('Le data\n', data)
+            print("Le data\n", data)
             print("headers", headers)
-            print('value', value)
-            print('comments', comments)
+            print("value", value)
+            print("comments", comments)
 
             f.seek(0)
-            f.write(data+'\n')
+            f.write(data + "\n")
             f.truncate()
 
     @property
