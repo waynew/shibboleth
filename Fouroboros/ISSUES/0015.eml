@@ -1,0 +1,14 @@
+From: Wayne Werner <wayne@waynewerner.com>
+To: None
+X-Fouroboros-Type: issue
+Message-ID: 0015@awesome-project
+Date: Thu, 13 Nov 2025 19:39:50 -0000
+Subject: External edit should re-load UI card
+X-Fouroboros-Status: open
+
+
+
+From: Wayne Werner <wayne@waynewerner.com>
+Date: Thu, 13 Nov 2025 19:40:21 -0000
+
+Right now it definitely doesn't. That's not very good.
