@@ -7,3 +7,8 @@ Subject: There is some wonkiness when editing the description
 X-Fouroboros-Status: open
 
 At least, I think there still is. There has been before... I guess we'll see?
+
+From: Wayne Werner <wayne@waynewerner.com>
+Date: Thu, 13 Nov 2025 19:22:40 -0000
+
+Yes, there definitely is very weirdness when creating comments, editing descriptions, etc. I think it's probably due to grid layout.
