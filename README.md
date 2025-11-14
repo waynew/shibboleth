@@ -252,6 +252,12 @@ CHANGELOG
 
 ## [25.11.1]
 
+### Fixed
+
+- Tasks with the same sort order are now equal (#17)
+
+## [25.11.1]
+
 ### Added
 
 - Cards can now have a sort order added to them with shift+up/shift+down.

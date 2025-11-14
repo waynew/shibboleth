@@ -331,6 +331,24 @@ class Task:
         else:
             self._list = self._priority = None
 
+    def __eq__(self, other):
+        return isinstance(other, Task) and self.path == other.path
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __lt__(self, other):
+        return self.order < other.order
+
+    def __le__(self, other):
+        return self.order <= other.order
+
+    def __gt__(self, other):
+        return self.order > other.order
+
+    def __ge__(self, other):
+        return self.order >= other.order
+
     @classmethod
     def create_from_content(self, content):
         parsed = HEADER_PARSER.parsestr(content)
