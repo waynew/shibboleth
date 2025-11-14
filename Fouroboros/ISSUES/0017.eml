@@ -1,0 +1,29 @@
+From: Wayne Werner <wayne@waynewerner.com>
+To: None
+X-Fouroboros-Type: issue
+Message-ID: 0017@awesome-project
+Date: Fri, 14 Nov 2025 20:38:32 -0000
+Subject: [bug] same sort:N tasks blow up with TypeError
+X-Fouroboros-Status: open
+
+```
+TypeError: '<' not supported between instances of 'Task' and 'Task'
+```
+
+Yeah. What it says on the tin.
+
+```
+/home/wayne/.local/share/uv/tools/shibboleth/lib/python3.12/site-packages/s
+hibboleth/fancy.py:320 in by_sort_order
+
+  317 │   │   │   │   else:
+  318 │   │   │   │   │   with_order.append((max, task))
+  319 │   │   │   │   │   max += 1
+❱ 320 │   │   │   return sorted(with_order)
+  321 │   │
+  322 │   │   with VerticalScroll(can_focus=False) as v:
+  323 │   │   │   v.BINDINGS.clear()
+
+```
+
+Fortunately it shouldn't be hard to fix?
