@@ -4,7 +4,7 @@ X-Fouroboros-Type: issue
 Message-ID: 0017@awesome-project
 Date: Fri, 14 Nov 2025 20:38:32 -0000
 Subject: [bug] same sort:N tasks blow up with TypeError
-X-Fouroboros-Status: open
+X-Fouroboros-Status: closed
 
 ```
 TypeError: '<' not supported between instances of 'Task' and 'Task'
