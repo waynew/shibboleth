@@ -742,3 +742,35 @@ def test_setting_task_order_should_update_tag(order):
     expected_tag = f"sort:{order}"
 
     assert task.order == order
+
+
+def test_if_autocommit_off_then_shibboleth_should_not_commit(shibby_with_git, tmp_path):
+    shibby = shibboleth.Shibboleth(root_dir=tmp_path)
+    shibby.config['autocommit'] = False
+
+    before_hash = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True).stdout.decode()
+    t = shibby.new_task(title="Ardvark", content="Le content")
+    after_hash = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True).stdout.decode()
+
+    assert before_hash == after_hash
+
+
+def test_if_autocommit_on_then_new_task_should_create_commit(shibby_with_git, tmp_path):
+    shibby = shibboleth.Shibboleth(root_dir=tmp_path)
+    shibby.config['autocommit'] = True
+    t = shibby.new_task(title="Ardvark", content="Le content")
+    git_changes = subprocess.run(['git', 'diff-tree', '--no-commit-id', '--name-only', 'HEAD', '-r'], capture_output=True).stdout.decode().splitlines()
+    assert str(t.path.relative_to(shibby.root_dir)) in git_changes
+
+
+def test_if_autocommit_and_task_update_then_updates_should_be_committed(shibby_with_git, tmp_path):
+    shibby = shibboleth.Shibboleth(root_dir=tmp_path)
+    shibby.config['autocommit'] = True
+
+    t = shibby.new_task(title="Ardvark", content="Le content")
+    t.tags.append('hello')
+
+    commit, log = subprocess.run(['git', 'rev-list', '--format=%B', '--max-count=1', 'HEAD'], capture_output=True).stdout.decode().split('\n', maxsplit=1)
+    log = log.strip()
+
+    assert log == f'Shibboleth: update {t.title}'

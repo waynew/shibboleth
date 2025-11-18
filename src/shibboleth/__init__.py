@@ -31,8 +31,10 @@ COMMENT_HEADER_PATTERN = re.compile(
 
 
 class Shibboleth:
-    def __init__(self):
-        self.root_dir = Path(os.environ.get("SHIBBOLETH_DIR", ".")).absolute()
+    def __init__(self, root_dir=None):
+        self.root_dir = root_dir or Path(os.environ.get("SHIBBOLETH_DIR", ".")).absolute()
+        if self.root_dir.is_file():
+            self.root_dir = self.root_dir.parent
         shibboleth_file = self.root_dir / ".shibboleth"
         if not shibboleth_file.exists():
             self.config = {}
@@ -42,10 +44,20 @@ class Shibboleth:
         if "lists" in self.config:
             Task.lists = self.config["lists"]
 
+    def __enter__(self):
+        self._orig_dir = os.getcwd()
+        os.chdir(str(self.root_dir))
+        return self
+
+    def __exit__(self, exc_type, exe_value, trace):
+        os.chdir(self._orig_dir)
+
     @property
     def tasks_by_list(self):
         by_list = {list_: [] for list_ in Task.lists}
         for task in tasks_in_dir(path=self.root_dir):
+            if self._on_task_update not in task.listeners:
+                task.listeners.append(self._on_task_update)
             if task.priority not in by_list:
                 warnings.warn(
                     f"Task {task.filename} is not in any of lists: {Task.lists}."
@@ -53,6 +65,22 @@ class Shibboleth:
             else:
                 by_list[task.priority].append(task)
         return by_list
+
+    def _on_task_update(self, action, value):
+        self.commit(message=f'Shibboleth: {action} {value.title}', files=[value.path])
+
+    def commit(self, message, files=[]):
+        if self.config.get('autocommit'):
+            with self:
+                files = ' '.join(str(f.resolve()) for f in files)
+                subprocess.run(['git', 'add', files])
+                subprocess.run(['git', 'commit', '-m', message, '--', files])
+
+    def new_task(self, *, title, content):
+        task = Task.create_from_content(f'Title:whatever')
+        task.listeners.append(self._on_task_update)
+        self.commit(message='Shibboleth: new task', files=[task.path])
+        return task
 
 
 HIDDEN_FILES = (".last.shib", ".gitignore", "shibboleth.log", ".shibboleth")
@@ -323,6 +351,7 @@ class Task:
 
         self.tags.listeners.append(self._on_tag_update)
         self._old_fname = path
+        self.listeners = []
 
         for the_list in Task.lists:
             if the_list in self.tags:
@@ -366,6 +395,11 @@ class Task:
         new_filename = self._old_fname.parent / self.filename
         self._old_fname.rename(new_filename)
         self._old_fname = new_filename
+        self._broadcast(action="update", value=self)
+
+    def _broadcast(self, *, action, value):
+        for listener in self.listeners:
+            listener(action=action, value=value)
 
     def _on_tag_update(self, action, value):
         if isinstance(value, list):

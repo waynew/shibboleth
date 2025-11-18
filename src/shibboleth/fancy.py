@@ -187,7 +187,11 @@ class CardBack(ModalScreen):
             subprocess.run(["vim", self.task.path])
         self.mutate_reactive(CardBack.task)
 
+    def on_key(self, event: events.Key):
+        log(event)
+
     def action_add_comment(self) -> None:
+        log('okay what?')
         with self.task.path.open("a") as f:
             now = datetime.now().replace(microsecond=0)
             f.write(
