@@ -773,4 +773,16 @@ def test_if_autocommit_and_task_update_then_updates_should_be_committed(shibby_w
     commit, log = subprocess.run(['git', 'rev-list', '--format=%B', '--max-count=1', 'HEAD'], capture_output=True).stdout.decode().split('\n', maxsplit=1)
     log = log.strip()
 
-    assert log == f'Shibboleth: update {t.title}'
+    assert log == f'Shibboleth: task update {t.title}'
+
+    t = shibby.new_task(title="Moo", content="Le content")
+    t.order = 5
+    commit, log = subprocess.run(['git', 'rev-list', '--format=%B', '--max-count=1', 'HEAD'], capture_output=True).stdout.decode().split('\n', maxsplit=1)
+    log = log.strip()
+    assert log == f'Shibboleth: task update Moo'
+
+    t = shibby.new_task(title="Boo", content="Le content")
+    t.description = "Something simple"
+    commit, log = subprocess.run(['git', 'rev-list', '--format=%B', '--max-count=1', 'HEAD'], capture_output=True).stdout.decode().split('\n', maxsplit=1)
+    log = log.strip()
+    assert log == f'Shibboleth: task update Boo'

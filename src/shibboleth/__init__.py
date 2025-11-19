@@ -67,17 +67,17 @@ class Shibboleth:
         return by_list
 
     def _on_task_update(self, action, value):
-        self.commit(message=f'Shibboleth: {action} {value.title}', files=[value.path])
+        self.commit(message=f'Shibboleth: {action} {value["task"].title}', files=value['files'])
 
     def commit(self, message, files=[]):
         if self.config.get('autocommit'):
             with self:
-                files = ' '.join(str(f.resolve()) for f in files)
-                subprocess.run(['git', 'add', files])
-                subprocess.run(['git', 'commit', '-m', message, '--', files])
+                files = [str(f) for f in files]
+                subprocess.run(['git', 'add', *files])
+                subprocess.run(['git', 'commit', '-m', message, '--', *files])
 
     def new_task(self, *, title, content):
-        task = Task.create_from_content(f'Title:whatever')
+        task = Task.create_from_content(f'Title: {title}')
         task.listeners.append(self._on_task_update)
         self.commit(message='Shibboleth: new task', files=[task.path])
         return task
@@ -393,9 +393,10 @@ class Task:
 
     def _rename(self):
         new_filename = self._old_fname.parent / self.filename
+        files = [new_filename, self._old_fname]
         self._old_fname.rename(new_filename)
         self._old_fname = new_filename
-        self._broadcast(action="update", value=self)
+        self._broadcast(action="task update", value={"files":files, "task": self})
 
     def _broadcast(self, *, action, value):
         for listener in self.listeners:
@@ -493,6 +494,7 @@ class Task:
             f.seek(0)
             f.write(data + "\n")
             f.truncate()
+        self._broadcast(action="task update", value={"files":[self.path], "task": self})
 
     @property
     def comments(self):
