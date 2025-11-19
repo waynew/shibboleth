@@ -250,6 +250,13 @@ TODOs
 CHANGELOG
 ---------
 
+## [25.11.4] - [2025-11-19]
+
+### Fixed
+
+- Capture git output so it doesn't make the screen all flashy.
+
+
 ## [25.11.3]
 
 ### Added

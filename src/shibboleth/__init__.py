@@ -22,7 +22,7 @@ import tomllib
 
 logger = logging.getLogger(__name__)
 
-__version__ = "25.11.3"
+__version__ = "25.11.4"
 
 
 COMMENT_HEADER_PATTERN = re.compile(
@@ -73,8 +73,10 @@ class Shibboleth:
         if self.config.get('autocommit'):
             with self:
                 files = [str(f) for f in files]
-                subprocess.run(['git', 'add', *files])
-                subprocess.run(['git', 'commit', '-m', message, '--', *files])
+                r = subprocess.run(['git', 'add', *files], capture_output=True)
+                logger.debug(r)
+                r = subprocess.run(['git', 'commit', '-m', message, '--', *files], capture_output=True)
+                logger.debug(r)
 
     def new_task(self, *, title, content):
         task = Task.create_from_content(f'Title: {title}')
