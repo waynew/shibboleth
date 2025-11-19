@@ -1,8 +1,9 @@
 From: Wayne Werner <wayne@waynewerner.com>
 To: None
 X-Fouroboros-Type: issue
-Message-ID: 019a9d79-93c4-711b-87e7-80dd03101783@awesome-project
+Message-ID: 0018@awesome-project
 Date: Wed, 19 Nov 2025 18:56:21 -0000
 Subject: Autocommit
+X-Fouroboros-Status: open
 
 We most assuredly want the ability to autocommit when editing/moving tasks.
