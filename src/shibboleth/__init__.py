@@ -22,7 +22,7 @@ import tomllib
 
 logger = logging.getLogger(__name__)
 
-__version__ = "25.11.4"
+__version__ = "25.11.5"
 
 
 COMMENT_HEADER_PATTERN = re.compile(
@@ -32,7 +32,9 @@ COMMENT_HEADER_PATTERN = re.compile(
 
 class Shibboleth:
     def __init__(self, root_dir=None):
-        self.root_dir = root_dir or Path(os.environ.get("SHIBBOLETH_DIR", ".")).absolute()
+        self.root_dir = (
+            root_dir or Path(os.environ.get("SHIBBOLETH_DIR", ".")).absolute()
+        )
         if self.root_dir.is_file():
             self.root_dir = self.root_dir.parent
         shibboleth_file = self.root_dir / ".shibboleth"
@@ -67,21 +69,25 @@ class Shibboleth:
         return by_list
 
     def _on_task_update(self, action, value):
-        self.commit(message=f'Shibboleth: {action} {value["task"].title}', files=value['files'])
+        self.commit(
+            message=f"Shibboleth: {action} {value['task'].title}", files=value["files"]
+        )
 
     def commit(self, message, files=[]):
-        if self.config.get('autocommit'):
+        if self.config.get("autocommit"):
             with self:
                 files = [str(f) for f in files]
-                r = subprocess.run(['git', 'add', *files], capture_output=True)
+                r = subprocess.run(["git", "add", *files], capture_output=True)
                 logger.debug(r)
-                r = subprocess.run(['git', 'commit', '-m', message, '--', *files], capture_output=True)
+                r = subprocess.run(
+                    ["git", "commit", "-m", message, "--", *files], capture_output=True
+                )
                 logger.debug(r)
 
     def new_task(self, *, title, content):
-        task = Task.create_from_content(f'Title: {title}')
+        task = Task.create_from_content(f"Title: {title}")
         task.listeners.append(self._on_task_update)
-        self.commit(message='Shibboleth: new task', files=[task.path])
+        self.commit(message="Shibboleth: new task", files=[task.path])
         return task
 
 
@@ -398,7 +404,7 @@ class Task:
         files = [new_filename, self._old_fname]
         self._old_fname.rename(new_filename)
         self._old_fname = new_filename
-        self._broadcast(action="task update", value={"files":files, "task": self})
+        self._broadcast(action="task update", value={"files": files, "task": self})
 
     def _broadcast(self, *, action, value):
         for listener in self.listeners:
@@ -496,7 +502,9 @@ class Task:
             f.seek(0)
             f.write(data + "\n")
             f.truncate()
-        self._broadcast(action="task update", value={"files":[self.path], "task": self})
+        self._broadcast(
+            action="task update", value={"files": [self.path], "task": self}
+        )
 
     @property
     def comments(self):

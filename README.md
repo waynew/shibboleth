@@ -252,6 +252,12 @@ CHANGELOG
 
 ## [25.11.4] - [2025-11-19]
 
+### Added
+
+- Fancy comment add will also autocommit
+
+## [25.11.4] - [2025-11-19]
+
 ### Fixed
 
 - Capture git output so it doesn't make the screen all flashy.

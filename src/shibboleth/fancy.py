@@ -191,7 +191,7 @@ class CardBack(ModalScreen):
         log(event)
 
     def action_add_comment(self) -> None:
-        log('okay what?')
+        log("okay what?")
         with self.task.path.open("a") as f:
             now = datetime.now().replace(microsecond=0)
             f.write(
@@ -203,7 +203,10 @@ class CardBack(ModalScreen):
             """)
                 + self.comment_area.text
             )
-            # self.mutate_reactive(CardBack.task)
+        self.task._broadcast(
+            action="add comment", value={"files": [self.task.path], "task": self.task}
+        )
+        # self.mutate_reactive(CardBack.task)
         # self.call_later(lambda: self.query_one("#card_save").scroll_visible())
         comment_widget = Static(rm.Markdown(self.comment_area.text), classes="comment")
         comment_widget.border_title = str(now)
