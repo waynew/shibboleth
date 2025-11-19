@@ -250,6 +250,13 @@ TODOs
 CHANGELOG
 ---------
 
+## [25.11.3]
+
+### Added
+
+- `autocommit` functionality, enabled by `autocommit=true` in `.shibboleth`
+  file. (#18)
+
 ## [25.11.1]
 
 ### Fixed
