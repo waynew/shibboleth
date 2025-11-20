@@ -1,0 +1,8 @@
+From: Wayne Werner <wayne@waynewerner.com>
+To: None
+X-Fouroboros-Type: issue
+Message-ID: 019aa21a-efab-764d-9264-6e6bdd8cd00e@awesome-project
+Date: Thu, 20 Nov 2025 16:31:05 -0000
+Subject: Make commit not so much commit
+
+Right now, say, moving things up & down commits which is great but... we probably want to just --amend a task update? Not entirely sure.
