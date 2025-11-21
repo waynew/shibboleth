@@ -22,7 +22,7 @@ import tomllib
 
 logger = logging.getLogger(__name__)
 
-__version__ = "25.11.6"
+__version__ = "25.11.7"
 
 
 COMMENT_HEADER_PATTERN = re.compile(
@@ -88,9 +88,9 @@ class Shibboleth:
                 files = [str(f) for f in files]
                 r = subprocess.run(["git", "add", *files], capture_output=True)
                 logger.debug(r)
-                if message == last_message:
+                if all(msg.startswith('Shibboleth: task update') for msg in (message, last_message)):
                     r = subprocess.run(
-                        ["git", "commit", "--amend", "--no-edit", "==", *files],
+                            ["git", "commit", "--amend", "-m", "Shibboleth: task update", "==", *files],
                         capture_output=True,
                     )
                 else:

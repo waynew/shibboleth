@@ -825,9 +825,19 @@ def test_if_autocommit_and_task_update_then_updates_should_be_committed(
 def test_if_autocommit_on_then_task_update_should_just_amend(shibby_with_git, tmp_path):
     shibby = shibboleth.Shibboleth(root_dir=tmp_path)
     shibby.config["autocommit"] = True
+    t1 = shibby.new_task(title="Bonk", content="Le other content")
+    t2 = shibby.new_task(title="Donk", content="Le Donk content")
     t = shibby.new_task(title="Ardvark", content="Le content")
-    for n in range(100):
-        t.order = n
+    t2.list = '1-now'
+    t2.order = 1
+    t1.list = '1-now'
+    t1.order = 2
+    t.list = '1-now'
+    t.order = 3
+
+    for n in range(20):
+        t.order, t1.order, t2.order = t1.order, t2.order, t.order
+
     git_changes = (
         subprocess.run(
             ["git", "log", "--oneline"],
@@ -836,5 +846,5 @@ def test_if_autocommit_on_then_task_update_should_just_amend(shibby_with_git, tm
         .stdout.decode()
         .splitlines()
     )
-    # initial commit, new task, and task update
-    assert len(git_changes) == 3
+    # initial commit, new task x3, and task update
+    assert len(git_changes) == 5

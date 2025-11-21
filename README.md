@@ -250,6 +250,12 @@ TODOs
 CHANGELOG
 ---------
 
+## [25.11.7] - [2025-11-21]
+
+### Changed
+
+- Commit will more aggressively `--amend`.
+
 ## [25.11.6] - [2025-11-21]
 
 ### Changed
