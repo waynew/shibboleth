@@ -22,7 +22,7 @@ import tomllib
 
 logger = logging.getLogger(__name__)
 
-__version__ = "25.11.5"
+__version__ = "25.11.6"
 
 
 COMMENT_HEADER_PATTERN = re.compile(
@@ -76,12 +76,28 @@ class Shibboleth:
     def commit(self, message, files=[]):
         if self.config.get("autocommit"):
             with self:
+                last_message = "".join(
+                    subprocess.run(
+                        ["git", "rev-list", "--format=%B", "--max-count=1", "HEAD"],
+                        capture_output=True,
+                    )
+                    .stdout.decode()
+                    .strip()
+                    .splitlines(keepends=True)[1:]
+                )
                 files = [str(f) for f in files]
                 r = subprocess.run(["git", "add", *files], capture_output=True)
                 logger.debug(r)
-                r = subprocess.run(
-                    ["git", "commit", "-m", message, "--", *files], capture_output=True
-                )
+                if message == last_message:
+                    r = subprocess.run(
+                        ["git", "commit", "--amend", "--no-edit", "==", *files],
+                        capture_output=True,
+                    )
+                else:
+                    r = subprocess.run(
+                        ["git", "commit", "-m", message, "--", *files],
+                        capture_output=True,
+                    )
                 logger.debug(r)
 
     def new_task(self, *, title, content):

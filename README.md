@@ -250,6 +250,12 @@ TODOs
 CHANGELOG
 ---------
 
+## [25.11.5] - [2025-11-21]
+
+### Changed
+
+- Commit will just `--amend` where possible to cut down on noise. (#19)
+
 ## [25.11.4] - [2025-11-19]
 
 ### Added
