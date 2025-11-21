@@ -7,3 +7,8 @@ Subject: Make commit not so much commit
 X-Fouroboros-Status: open
 
 Right now, say, moving things up & down commits which is great but... we probably want to just --amend a task update? Not entirely sure.
+
+From: Wayne Werner <wayne@waynewerner.com>
+Date: Fri, 21 Nov 2025 19:24:34 -0000
+
+Got this one done!
